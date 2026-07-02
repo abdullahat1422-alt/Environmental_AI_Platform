@@ -1,0 +1,2262 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitleEl">Environmental AI Analyst</title>
+
+<!-- Fonts: Fraunces (editorial display serif) + Plus Jakarta Sans (body) + JetBrains Mono (data) + Cairo (Arabic) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js via CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- SheetJS (xlsx) via CDN -- enables direct Excel (.xlsx/.xls) upload and template download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+/* ============================================================
+   DESIGN SYSTEM — "Field Notebook" — a precise, editorial,
+   research-grade aesthetic for environmental science.
+   Mood: calm scientific confidence. Palette: parchment canvas,
+   deep forest-emerald accent, ink typography, warm shadows.
+   Type: Fraunces (display serif) + Plus Jakarta Sans (body)
+         + JetBrains Mono (data / figures).
+   ============================================================ */
+:root{
+  /* ── Canvas ─────────────────────────── */
+  --bg:          #f6f3ea;
+  --bg-2:        #ede6d4;
+  --surface:     #ffffff;
+  --surface-2:   #fbf9f2;
+
+  /* ── Accent — deep forest emerald (primary) ── */
+  --accent:      #0e6b52;
+  --accent-tint: #dcefe5;
+  --accent-deep: #093f31;
+  --accent-soft: #4f9c81;
+
+  /* ── Secondary accent — deep teal (water / data) ── */
+  --accent2:      #1c6e8c;
+  --accent2-tint: #dcedf3;
+  --accent2-deep: #0f4a5f;
+
+  /* ── Text ───────────────────────────── */
+  --ink-900:     #1a2119;
+  --ink-700:     #4c5850;
+  --ink-500:     #748075;
+  --ink-300:     #a6ac9e;
+
+  /* ── Borders ────────────────────────── */
+  --line:        #e2dac6;
+  --line-2:      #cfc4a8;
+
+  /* ── Status / feedback (functional — names required by JS) ── */
+  --good:        #12805e;
+  --moderate:    #1f6fa8;
+  --warning:     #b1791f;
+  --critical:    #b1432d;
+  --good-tint:     #dff1e8;
+  --moderate-tint: #dfeaf5;
+  --warning-tint:  #f7ecd8;
+  --critical-tint: #f6e0da;
+
+  /* ── Typography ─────────────────────── */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'Plus Jakarta Sans', -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Radii ──────────────────────────── */
+  --r-sm:   8px;
+  --r-md:   14px;
+  --r-lg:   20px;
+  --r-xl:   28px;
+  --r-full: 999px;
+  --radius: 16px; /* legacy alias, kept for internal consistency */
+
+  /* ── Shadows (warm, never pure black) ── */
+  --shadow-xs: 0 1px 3px rgba(26,33,25,0.06);
+  --shadow-sm: 0 2px 10px rgba(26,33,25,0.07), 0 1px 2px rgba(26,33,25,0.05);
+  --shadow-md: 0 8px 26px rgba(26,33,25,0.10), 0 2px 6px rgba(26,33,25,0.05);
+  --shadow-lg: 0 20px 54px rgba(26,33,25,0.14), 0 6px 16px rgba(26,33,25,0.07);
+  --shadow-accent: 0 10px 28px rgba(14,107,82,0.30);
+
+  /* ── Motion ─────────────────────────── */
+  --ease-out:    cubic-bezier(0.25,0.46,0.45,0.94);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-in-out: cubic-bezier(0.4,0,0.2,1);
+
+  --shadow: var(--shadow-sm); /* legacy alias used by early component drafts */
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  background:
+    radial-gradient(900px 480px at 8% 0%, rgba(14,107,82,0.05), transparent 60%),
+    radial-gradient(700px 420px at 100% 8%, rgba(28,110,140,0.05), transparent 55%),
+    var(--bg);
+  color:var(--ink-900);
+  line-height:1.6;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body.lang-ar{ font-family:'Cairo','Plus Jakarta Sans',Tahoma,Arial,sans-serif; }
+body.lang-ar h1,body.lang-ar h2,body.lang-ar h3,body.lang-ar h4{ font-family:'Cairo',serif; }
+
+h1,h2,h3,h4{margin:0 0 8px 0;font-family:var(--font-display);font-weight:600;letter-spacing:-0.01em;color:var(--ink-900);}
+body.lang-ar h1,body.lang-ar h2,body.lang-ar h3,body.lang-ar h4{letter-spacing:0;}
+p{margin:0 0 10px 0;color:var(--ink-700);}
+a{color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+strong,b{font-weight:700;}
+
+::selection{background:var(--accent-tint);color:var(--accent-deep);}
+
+:focus-visible{
+  outline:2.5px solid var(--accent);
+  outline-offset:3px;
+  border-radius:4px;
+}
+
+.container{max-width:1240px;margin:0 auto;padding:0 24px;}
+section{padding:64px 0;}
+.section-title{font-size:var(--text-2xl,1.9rem);color:var(--ink-900);font-weight:600;}
+.section-sub{color:var(--ink-500);margin-bottom:32px;max-width:760px;font-size:1.02rem;}
+.badge-tag{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--accent-tint);color:var(--accent-deep);
+  font-family:var(--font-mono);
+  font-size:.7rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  padding:6px 13px;border-radius:var(--r-full);margin-bottom:16px;
+  border:1px solid rgba(14,107,82,0.14);
+}
+.badge-tag::before{ content:''; width:6px;height:6px;border-radius:50%;background:var(--accent); flex-shrink:0; }
+body.lang-ar .badge-tag{letter-spacing:0;text-transform:none;font-family:'Cairo',sans-serif;}
+
+/* Entrance animation vocabulary — plays automatically whenever elements
+   are inserted (initial load, or later via JS innerHTML updates). */
+@keyframes fadeUp{ from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+@keyframes scaleIn{ from{opacity:0;transform:scale(.95);} to{opacity:1;transform:scale(1);} }
+@keyframes drawLine{ from{width:0;} to{width:100%;} }
+
+/* RTL-specific overrides */
+[dir="rtl"] table{direction:rtl;}
+[dir="rtl"] thead th,[dir="rtl"] tbody td{text-align:right;}
+[dir="rtl"] .hero-stats{text-align:right;}
+[dir="rtl"] .chip-row{justify-content:flex-start;}
+[dir="rtl"] .hero-inner{border-left:none;border-right:3px solid var(--accent-tint);padding-left:0;padding-right:28px;}
+[dir="rtl"] .section-title::before{margin-left:10px;margin-right:0;}
+
+/* ============================================================
+   NAV BAR
+   ============================================================ */
+.navbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(246,243,234,0.86);
+  backdrop-filter:blur(10px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  max-width:1240px;margin:0 auto;padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.05rem;color:var(--ink-900);white-space:nowrap;font-family:var(--font-display);}
+.brand-mark{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(155deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;
+  font-family:var(--font-mono);font-weight:700;
+  box-shadow:0 4px 12px rgba(14,107,82,0.28);
+}
+.nav-links{display:flex;gap:24px;font-size:.86rem;color:var(--ink-700);}
+.nav-links a{text-decoration:none;font-weight:600;position:relative;padding-bottom:3px;}
+.nav-links a::after{
+  content:'';position:absolute;left:0;bottom:0;width:0;height:2px;background:var(--accent);
+  transition:width .22s var(--ease-out);
+}
+.nav-links a:hover{color:var(--accent-deep);}
+.nav-links a:hover::after{width:100%;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+@media (max-width:900px){ .nav-links{display:none;} }
+
+/* Language toggle */
+.lang-toggle{display:flex;border:1.5px solid var(--line);border-radius:var(--r-full);overflow:hidden;flex-shrink:0;}
+.lang-btn{border:none;background:var(--surface);color:var(--ink-500);font-weight:700;font-size:.72rem;padding:7px 14px;letter-spacing:.03em;font-family:var(--font-mono);transition:background .15s ease,color .15s ease;}
+.lang-btn:hover{background:var(--accent-tint);color:var(--accent-deep);}
+.lang-btn.active{background:var(--accent);color:#fff;}
+.lang-btn.active:hover{background:var(--accent);color:#fff;}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{
+  border:none;border-radius:var(--r-full);padding:12px 24px;font-size:.9rem;font-weight:700;
+  display:inline-flex;align-items:center;gap:8px;letter-spacing:.01em;
+  transition:transform .16s var(--ease-out), box-shadow .16s var(--ease-out), background .16s ease, opacity .16s ease;
+  position:relative;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:#fff;box-shadow:var(--shadow-accent);}
+.btn-primary:hover{box-shadow:0 14px 34px rgba(14,107,82,0.38);transform:translateY(-2px);}
+.btn-secondary{background:var(--surface);color:var(--accent2-deep);border:1.5px solid var(--accent2);}
+.btn-secondary:hover{background:var(--accent2-tint);transform:translateY(-2px);box-shadow:var(--shadow-sm);}
+.btn-ghost{background:transparent;color:var(--ink-700);border:1.5px solid var(--line);}
+.btn-ghost:hover{border-color:var(--ink-300);background:var(--surface-2);}
+.btn-sm{padding:9px 16px;font-size:.8rem;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none !important;}
+
+/* ============================================================
+   HERO / LANDING HEADER
+   ============================================================ */
+.hero{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(900px 420px at 100% -20%, rgba(14,107,82,0.09), transparent 60%),
+    var(--surface);
+  border-bottom:1px solid var(--line);
+  padding:52px 0 44px;
+}
+.hero-inner{max-width:100%;position:relative;z-index:1;animation:fadeUp .5s var(--ease-out) both;}
+.hero h1{font-size:clamp(1.8rem,3.4vw,2.5rem);color:var(--ink-900);line-height:1.14;font-weight:600;}
+.hero .highlight{
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lead{font-size:1.02rem;color:var(--ink-700);max-width:640px;margin-bottom:24px;line-height:1.6;}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
+.hero-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:24px;
+  margin-top:36px;padding-top:24px;border-top:1px solid var(--line);max-width:760px;
+}
+.hero-stat{animation:fadeUp .5s var(--ease-out) both;}
+.hero-stat:nth-child(2){animation-delay:.06s;}
+.hero-stat:nth-child(3){animation-delay:.12s;}
+.hero-stat:nth-child(4){animation-delay:.18s;}
+.hero-stat b{display:block;font-family:var(--font-mono);font-size:1.4rem;font-weight:700;color:var(--accent-deep);letter-spacing:-.02em;}
+.hero-stat span{font-size:.74rem;color:var(--ink-500);letter-spacing:.02em;}
+@media (max-width:640px){ .hero{padding:40px 0 32px;} .hero-stats{grid-template-columns:repeat(2,1fr);} }
+
+/* ============================================================
+   UPLOAD SECTION
+   ============================================================ */
+.upload-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;}
+@media (max-width:900px){ .upload-grid{grid-template-columns:1fr;} }
+
+.upload-box{
+  background:var(--surface);border:2px dashed var(--accent-soft);border-radius:var(--r-lg);
+  padding:44px 26px;text-align:center;box-shadow:var(--shadow-sm);
+  transition:border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  animation:fadeUp .5s var(--ease-out) both;
+}
+.upload-box.dragover{background:var(--accent-tint);border-color:var(--accent);box-shadow:var(--shadow-md);}
+.upload-icon{
+  width:62px;height:62px;border-radius:50%;margin:0 auto 16px;
+  background:linear-gradient(155deg,var(--accent-tint),var(--surface-2));color:var(--accent-deep);
+  display:flex;align-items:center;justify-content:center;font-size:1.7rem;
+  border:1px solid rgba(14,107,82,0.14);
+}
+.upload-box h3{color:var(--ink-900);font-size:1.25rem;}
+.upload-box input[type=file]{display:none;}
+.file-name-tag{
+  margin-top:14px;font-size:.83rem;font-family:var(--font-mono);color:var(--accent2-deep);background:var(--accent2-tint);
+  display:inline-block;padding:7px 14px;border-radius:var(--r-full);
+}
+.upload-actions{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+
+.supported-card{
+  background:var(--surface);border-radius:var(--r-lg);padding:28px;box-shadow:var(--shadow-sm);border:1px solid var(--line);
+  animation:fadeUp .5s var(--ease-out) both;animation-delay:.08s;
+}
+.supported-card h4{color:var(--ink-900);font-size:1.1rem;}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.chip{
+  background:var(--accent2-tint);color:var(--accent2-deep);font-size:.76rem;font-weight:600;
+  padding:6px 12px;border-radius:var(--r-full);font-family:var(--font-mono);letter-spacing:-.01em;
+}
+.status-line{
+  margin-top:18px;padding:13px 16px;border-radius:var(--r-md);font-size:.85rem;
+  display:none;border:1px solid transparent;
+}
+.status-line.show{display:block;animation:fadeUp .3s var(--ease-out) both;}
+.status-line.ok{background:var(--good-tint);color:var(--good);border-color:rgba(18,128,94,0.18);}
+.status-line.err{background:var(--critical-tint);color:var(--critical);border-color:rgba(177,67,45,0.18);}
+.status-line.info{background:var(--moderate-tint);color:var(--moderate);border-color:rgba(31,111,168,0.18);}
+.template-row{margin-top:20px;padding-top:18px;border-top:1px dashed var(--line);}
+
+/* ============================================================
+   GENERIC CARD / GRID
+   ============================================================ */
+.card{
+  background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:24px;
+  transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out), border-color .22s ease;
+  animation:fadeUp .45s var(--ease-out) both;
+}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:var(--line-2);}
+.grid{display:grid;gap:18px;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid > *:nth-child(1){animation-delay:0s;}
+.grid > *:nth-child(2){animation-delay:.05s;}
+.grid > *:nth-child(3){animation-delay:.10s;}
+.grid > *:nth-child(4){animation-delay:.15s;}
+.grid > *:nth-child(5){animation-delay:.20s;}
+.grid > *:nth-child(6){animation-delay:.25s;}
+@media (max-width:980px){ .grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:620px){ .grid-4,.grid-3,.grid-2{grid-template-columns:1fr;} }
+
+/* Data quality stat cards */
+.stat-card{text-align:left;}
+[dir="rtl"] .stat-card{text-align:right;}
+.stat-card .stat-label{font-size:.74rem;color:var(--ink-500);text-transform:uppercase;letter-spacing:.07em;font-weight:700;font-family:var(--font-mono);}
+body.lang-ar .stat-card .stat-label{text-transform:none;letter-spacing:0;font-family:'Cairo',sans-serif;}
+.stat-card .stat-value{font-family:var(--font-mono);font-size:1.85rem;font-weight:700;color:var(--ink-900);margin-top:8px;letter-spacing:-.02em;}
+.stat-card .stat-note{font-size:.78rem;color:var(--ink-500);margin-top:5px;}
+.quality-score-wrap{display:flex;align-items:center;gap:18px;}
+.score-ring{
+  width:74px;height:74px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.15rem;
+  font-family:var(--font-mono);
+  background:conic-gradient(var(--accent) 0deg, var(--line) 0deg);
+  box-shadow:var(--shadow-sm);
+  position:relative;
+}
+.score-ring::before{
+  content:'';position:absolute;inset:6px;border-radius:50%;background:var(--surface);z-index:0;
+}
+.score-ring{ }
+.score-ring{ color:var(--ink-900); }
+.score-ring > *{position:relative;z-index:1;}
+
+/* Indicator cards */
+.indicator-card{position:relative;overflow:hidden;}
+.indicator-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.7;
+}
+[dir="rtl"] .indicator-card::before{left:0;right:0;}
+.indicator-card .stat-label{display:flex;align-items:center;justify-content:space-between;}
+.indicator-card .stat-value{display:flex;align-items:baseline;gap:6px;}
+.indicator-card .unit{font-size:.82rem;color:var(--ink-500);font-weight:600;font-family:var(--font-body);}
+.status-pill{
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:5px 12px;border-radius:var(--r-full);display:inline-block;margin-top:12px;
+  font-family:var(--font-mono);
+}
+body.lang-ar .status-pill{text-transform:none;letter-spacing:0;font-family:'Cairo',sans-serif;}
+.status-Good{background:var(--good-tint);color:var(--good);}
+.status-Moderate{background:var(--moderate-tint);color:var(--moderate);}
+.status-Warning{background:var(--warning-tint);color:var(--warning);}
+.status-Critical{background:var(--critical-tint);color:var(--critical);}
+.indicator-card .bar-track{height:6px;border-radius:var(--r-full);background:var(--bg-2);margin-top:16px;overflow:hidden;}
+.indicator-card .bar-fill{height:100%;border-radius:var(--r-full);transition:width .5s var(--ease-out);}
+
+/* ============================================================
+   CHARTS
+   ============================================================ */
+.chart-card canvas{max-height:280px;}
+.chart-card h4{color:var(--ink-900);font-size:1.05rem;}
+.chart-card .chart-sub{font-size:.79rem;color:var(--ink-500);margin-bottom:14px;}
+
+/* ============================================================
+   TABLE (anomalies / location risk)
+   ============================================================ */
+.table-wrap{overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-sm);}
+table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:640px;}
+thead th{
+  background:linear-gradient(135deg,var(--accent-deep),var(--accent));color:#fff;text-align:left;padding:14px 16px;font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;font-family:var(--font-mono);font-weight:600;
+}
+body.lang-ar thead th{text-transform:none;letter-spacing:0;font-family:'Cairo',sans-serif;}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--line);color:var(--ink-700);}
+tbody tr{transition:background .15s ease;}
+tbody tr:hover{background:var(--accent-tint);}
+tbody tr:last-child td{border-bottom:none;}
+.sev-pill{padding:4px 11px;border-radius:var(--r-full);font-size:.7rem;font-weight:700;text-transform:uppercase;font-family:var(--font-mono);letter-spacing:.03em;}
+body.lang-ar .sev-pill{text-transform:none;font-family:'Cairo',sans-serif;}
+.sev-Moderate{background:var(--moderate-tint);color:var(--moderate);}
+.sev-High{background:var(--warning-tint);color:var(--warning);}
+.sev-Critical{background:var(--critical-tint);color:var(--critical);}
+.empty-note{padding:30px;text-align:center;color:var(--ink-500);font-size:.9rem;}
+
+/* ============================================================
+   MAP PANEL
+   ============================================================ */
+.map-panel{
+  position:relative;width:100%;height:420px;border-radius:var(--r-lg);overflow:hidden;
+  background:
+    linear-gradient(rgba(28,110,140,0.06) 1px, transparent 1px) 0 0/42px 42px,
+    linear-gradient(90deg, rgba(28,110,140,0.06) 1px, transparent 1px) 0 0/42px 42px,
+    linear-gradient(160deg,#eef2e3,#e4eef2 55%,#eef2e3);
+  border:1px solid var(--line);box-shadow:var(--shadow-sm);
+}
+.map-dot{
+  position:absolute;width:16px;height:16px;border-radius:50%;
+  transform:translate(-50%,-50%);border:3px solid #fff;box-shadow:0 3px 10px rgba(26,33,25,0.28);
+  cursor:pointer;transition:transform .18s var(--ease-spring);
+}
+.map-dot:hover{transform:translate(-50%,-50%) scale(1.45);z-index:5;}
+.map-dot::after{
+  content:'';position:absolute;inset:-8px;border-radius:50%;
+  border:2px solid currentColor;opacity:0;animation:pulse 2.4s ease-out infinite;
+}
+@keyframes pulse{0%{opacity:.55;transform:scale(.6);}100%{opacity:0;transform:scale(1.7);}}
+.map-tooltip{
+  position:absolute;background:var(--ink-900);color:#fff;padding:9px 13px;border-radius:var(--r-md);
+  font-size:.78rem;pointer-events:none;white-space:nowrap;transform:translate(-50%,-135%);
+  opacity:0;transition:opacity .15s ease;z-index:10;box-shadow:var(--shadow-md);
+}
+.map-tooltip b{display:block;font-size:.84rem;font-family:var(--font-display);}
+.map-legend{display:flex;gap:18px;margin-top:16px;flex-wrap:wrap;font-size:.8rem;color:var(--ink-500);}
+.map-legend span{display:inline-flex;align-items:center;gap:7px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:0 0 0 3px rgba(0,0,0,0.03);}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+.filter-bar{
+  display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow-sm);margin-bottom:16px;
+}
+.filter-bar input[type=text]{
+  flex:1;min-width:200px;padding:11px 15px;border-radius:var(--r-md);border:1.5px solid var(--line);font-size:.88rem;
+  font-family:inherit;background:var(--bg);transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.filter-bar input[type=text]:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3.5px var(--accent-tint);outline:none;}
+.filter-bar select{padding:11px 15px;border-radius:var(--r-md);border:1.5px solid var(--line);font-size:.88rem;background:var(--bg);font-family:inherit;transition:border-color .18s ease, background .18s ease;}
+.filter-bar select:focus{border-color:var(--accent);background:var(--surface);outline:none;}
+.filter-bar label{font-size:.72rem;color:var(--ink-500);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-mono);}
+body.lang-ar .filter-bar label{text-transform:none;letter-spacing:0;font-family:'Cairo',sans-serif;}
+.filter-group{display:flex;flex-direction:column;gap:6px;}
+
+/* Parameter include/exclude toggle panel */
+.param-toggle-bar{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;
+  box-shadow:var(--shadow-sm);margin-bottom:28px;
+}
+.param-toggle-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.param-toggle-head label{font-size:.72rem;color:var(--ink-500);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-mono);}
+body.lang-ar .param-toggle-head label{text-transform:none;letter-spacing:0;font-family:'Cairo',sans-serif;}
+.param-toggle-actions{display:flex;gap:16px;}
+.link-btn{background:none;border:none;color:var(--accent2-deep);font-size:.79rem;font-weight:700;padding:0;position:relative;}
+.link-btn::after{content:'';position:absolute;left:0;bottom:-2px;width:100%;height:1.5px;background:currentColor;opacity:.4;}
+.link-btn:hover{color:var(--accent-deep);}
+.param-toggle-hint{font-size:.79rem;color:var(--ink-500);margin:8px 0 14px;max-width:760px;}
+.param-chip-row{display:flex;flex-wrap:wrap;gap:10px;}
+.param-chip{
+  display:inline-flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--line);
+  border-radius:var(--r-full);padding:8px 15px 8px 12px;font-size:.82rem;font-weight:600;color:var(--ink-700);
+  cursor:pointer;transition:border-color .18s ease, background .18s ease, transform .15s var(--ease-out);user-select:none;
+}
+[dir="rtl"] .param-chip{padding:8px 12px 8px 15px;}
+.param-chip:hover{border-color:var(--accent-soft);transform:translateY(-1px);}
+.param-chip.checked{background:var(--accent-tint);border-color:var(--accent);color:var(--accent-deep);}
+.param-chip input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;}
+.param-toggle-warn{
+  margin-top:14px;padding:11px 16px;border-radius:var(--r-md);background:var(--critical-tint);color:var(--critical);font-size:.82rem;font-weight:600;
+  animation:fadeUp .3s var(--ease-out) both;
+}
+
+/* Recommendation labels */
+.rec-pill{padding:5px 13px;border-radius:var(--r-full);font-size:.7rem;font-weight:700;text-transform:uppercase;font-family:var(--font-mono);letter-spacing:.03em;}
+body.lang-ar .rec-pill{text-transform:none;font-family:'Cairo',sans-serif;}
+.rec-Low{background:var(--good-tint);color:var(--good);}
+.rec-Medium{background:var(--moderate-tint);color:var(--moderate);}
+.rec-High{background:var(--warning-tint);color:var(--warning);}
+.rec-Urgent{background:var(--critical-tint);color:var(--critical);}
+
+/* ============================================================
+   REPORT
+   ============================================================ */
+.report-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:34px;animation:fadeUp .5s var(--ease-out) both;}
+.report-card h3{color:var(--ink-900);border-bottom:2px solid var(--accent-tint);padding-bottom:12px;margin-bottom:18px;font-size:1.3rem;}
+.report-body{white-space:pre-wrap;font-size:.92rem;color:var(--ink-700);line-height:1.75;max-height:640px;overflow-y:auto;padding-right:8px;font-family:var(--font-body);}
+[dir="rtl"] .report-body{padding-right:0;padding-left:8px;}
+.export-row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;}
+
+/* ============================================================
+   SECTION HEADERS / MISC
+   ============================================================ */
+.section-alt{background:var(--surface-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+footer{padding:40px 0;text-align:center;color:var(--ink-500);font-size:.82rem;border-top:1px solid var(--line);background:var(--surface);}
+.hidden{display:none !important;}
+.placeholder-panel{
+  border:1px dashed var(--line);border-radius:var(--r-lg);padding:52px 20px;text-align:center;color:var(--ink-500);
+  background:var(--surface);
+}
+.two-col{display:grid;grid-template-columns:1.3fr .7fr;gap:24px;}
+@media (max-width:980px){ .two-col{grid-template-columns:1fr;} }
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:var(--r-full);}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ============================================================
+   APP SHELL — SIDEBAR DASHBOARD LAYOUT
+   Fixed left sidebar (desktop) that collapses into a slide-in
+   drawer on mobile/tablet. Main content is an independent
+   scroll pane so anchor navigation + scrollIntoView still work.
+   ============================================================ */
+:root{ --sidebar-w:264px; }
+
+.app-shell{
+  display:flex;align-items:stretch;min-height:100vh;
+}
+
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;
+  background:var(--surface);
+  border-right:1px solid var(--line);
+  padding:22px 18px;
+  z-index:90;
+}
+[dir="rtl"] .sidebar{border-right:none;border-left:1px solid var(--line);}
+
+.sidebar-brand{
+  display:flex;align-items:center;gap:11px;font-weight:700;font-size:1rem;color:var(--ink-900);
+  font-family:var(--font-display);padding:4px 6px 22px;border-bottom:1px solid var(--line);margin-bottom:18px;
+}
+
+.sidebar-nav{display:flex;flex-direction:column;gap:2px;flex:1;}
+.sidebar-nav a{
+  display:flex;align-items:center;padding:11px 14px;border-radius:var(--r-md);
+  text-decoration:none;font-size:.88rem;font-weight:600;color:var(--ink-700);
+  transition:background .16s ease,color .16s ease,transform .16s var(--ease-out);
+  position:relative;
+}
+.sidebar-nav a::before{
+  content:'';position:absolute;left:-18px;top:50%;transform:translateY(-50%);width:3px;height:0;
+  background:var(--accent);border-radius:var(--r-full);transition:height .18s var(--ease-out);
+}
+[dir="rtl"] .sidebar-nav a::before{left:auto;right:-18px;}
+.sidebar-nav a:hover{background:var(--bg-2);color:var(--ink-900);transform:translateX(3px);}
+[dir="rtl"] .sidebar-nav a:hover{transform:translateX(-3px);}
+.sidebar-nav a:hover::before{height:60%;}
+
+.sidebar-footer{
+  display:flex;flex-direction:column;gap:12px;padding-top:18px;border-top:1px solid var(--line);
+}
+.sidebar-cta{width:100%;justify-content:center;}
+.sidebar-lang{width:100%;}
+.sidebar-lang .lang-btn{flex:1;}
+
+.sidebar-toggle{
+  display:none;position:fixed;top:16px;z-index:120;
+  inset-inline-start:16px;
+  width:44px;height:44px;border-radius:var(--r-md);border:1px solid var(--line);
+  background:var(--surface);box-shadow:var(--shadow-sm);
+  flex-direction:column;align-items:center;justify-content:center;gap:4px;
+}
+.sidebar-toggle span{width:19px;height:2px;background:var(--ink-900);border-radius:2px;transition:transform .2s ease,opacity .2s ease;}
+.sidebar-toggle.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+.sidebar-toggle.open span:nth-child(2){opacity:0;}
+.sidebar-toggle.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;background:rgba(26,33,25,0.42);z-index:95;
+  opacity:0;transition:opacity .2s ease;
+}
+.sidebar-overlay.show{display:block;opacity:1;}
+
+.main-content{
+  flex:1;min-width:0;
+}
+
+@media (max-width:980px){
+  .sidebar-toggle{display:flex;}
+  .sidebar{
+    position:fixed;top:0;bottom:0;inset-inline-start:0;height:100vh;
+    transform:translateX(-104%);transition:transform .26s var(--ease-out);
+    box-shadow:var(--shadow-lg);
+  }
+  [dir="rtl"] .sidebar{transform:translateX(104%);}
+  .sidebar.open{transform:translateX(0);}
+  .app-shell{display:block;}
+  .main-content{padding-top:64px;}
+}
+
+/* Consistent, equal-height grid cards regardless of content length —
+   CSS Grid rows stretch every card in the row to match the tallest. */
+.grid{align-items:stretch;}
+.grid > .card{display:flex;flex-direction:column;height:100%;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     APP SHELL — fixed sidebar navigation (desktop) / drawer (mobile)
+     ============================================================ -->
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="brand-mark">EA</span> <span data-i18n="nav_brand">Environmental AI Analyst</span></div>
+    <nav class="sidebar-nav">
+      <a href="#upload" data-i18n="nav_upload">Upload</a>
+      <a href="#quality" data-i18n="nav_quality">Data Quality</a>
+      <a href="#dashboard" data-i18n="nav_dashboard">Dashboard</a>
+      <a href="#charts" data-i18n="nav_charts">Charts</a>
+      <a href="#anomalies" data-i18n="nav_anomalies">Anomalies</a>
+      <a href="#map" data-i18n="nav_map">Map</a>
+      <a href="#report" data-i18n="nav_report">Report</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-primary btn-sm sidebar-cta" id="navUploadBtn" data-i18n="nav_upload_btn">Upload Dataset</button>
+      <div class="lang-toggle sidebar-lang">
+        <button class="lang-btn active" id="langEnBtn">EN</button>
+        <button class="lang-btn" id="langArBtn">AR</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+<!-- ============================================================
+     1. LANDING HEADER
+     ============================================================ -->
+<header class="hero">
+  <div class="container hero-inner">
+    <div class="badge-tag" data-i18n="hero_badge">● AI-Powered Environmental Intelligence</div>
+    <h1 data-i18n-html="hero_title_html">Environmental <span class="highlight">AI Analyst</span></h1>
+    <p class="lead" data-i18n="hero_sub">AI-powered environmental data analysis for air, water, soil, vegetation, and biodiversity.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" id="heroUploadBtn" data-i18n="btn_upload">⬆ Upload Dataset</button>
+      <button class="btn btn-secondary" id="heroDemoBtn" data-i18n="btn_demo">▶ Try Demo Data</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><b>8+</b><span data-i18n="stat1">Environmental Parameters</span></div>
+      <div class="hero-stat"><b>4</b><span data-i18n="stat2">Auto-Generated Charts</span></div>
+      <div class="hero-stat"><b data-i18n="stat3_val">Z-Score</b><span data-i18n="stat3">Anomaly Detection</span></div>
+      <div class="hero-stat"><b>0</b><span data-i18n="stat4">Backend Servers Required</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     2 & 3. DATA UPLOAD + DEMO DATA
+     ============================================================ -->
+<section id="upload">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step1">Step 1</div>
+    <h2 class="section-title" data-i18n="upload_title">Load Your Environmental Dataset</h2>
+    <p class="section-sub" data-i18n="upload_sub">Upload a CSV or Excel export from field sensors, lab results, or monitoring stations — or explore the platform instantly with a realistic demo dataset.</p>
+
+    <div class="upload-grid">
+      <div class="upload-box" id="dropZone">
+        <div class="upload-icon">⬆</div>
+        <h3 data-i18n="dropzone_title">Drag &amp; drop your CSV or Excel file here</h3>
+        <p data-i18n="dropzone_sub">or click below to browse your files</p>
+        <input type="file" id="csvInput" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+        <div class="upload-actions">
+          <button class="btn btn-primary btn-sm" id="browseBtn" data-i18n="btn_choose_file">Choose CSV / Excel File</button>
+          <button class="btn btn-secondary btn-sm" id="demoBtn" data-i18n="btn_demo">▶ Try Demo Data</button>
+        </div>
+        <div id="fileNameTag" class="file-name-tag hidden"></div>
+        <div id="uploadStatus" class="status-line"></div>
+      </div>
+
+      <div class="supported-card">
+        <h4 data-i18n="supported_title">Supported Data Fields</h4>
+        <p data-i18n="supported_desc">The analyzer automatically detects the columns below (case-insensitive, flexible naming, English or Arabic headers). Any additional numeric columns — including heavy metals or species counts — are also picked up automatically.</p>
+        <div class="chip-row">
+          <span class="chip" data-i18n="chip_date">date</span><span class="chip" data-i18n="chip_location">location</span><span class="chip" data-i18n="chip_lat">latitude</span><span class="chip" data-i18n="chip_lon">longitude</span>
+          <span class="chip">PM2.5</span><span class="chip">PM10</span><span class="chip">NO2</span><span class="chip">SO2</span>
+          <span class="chip" data-i18n="chip_rain">rainfall</span><span class="chip" data-i18n="chip_temp">temperature</span><span class="chip">NDVI</span>
+          <span class="chip">pH</span><span class="chip">EC</span><span class="chip">TDS</span>
+          <span class="chip" data-i18n="chip_metals">heavy metals</span><span class="chip" data-i18n="chip_species">species observations</span>
+        </div>
+        <div class="template-row">
+          <p style="margin-bottom:10px;" data-i18n="template_desc">Not sure how to format your file? Download a ready-to-fill Excel template with the correct headers.</p>
+          <button class="btn btn-ghost btn-sm" id="downloadTemplateBtn" data-i18n="btn_template">⬇ Download Excel Template</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FILTER BAR (applies to dashboard, charts, map, anomalies)
+     ============================================================ -->
+<section id="filters" class="hidden">
+  <div class="container">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label data-i18n="filter_search_label">Search Location</label>
+        <input type="text" id="locationSearch" data-i18n-placeholder="filter_search_ph" placeholder="Type a location name...">
+      </div>
+      <div class="filter-group">
+        <label data-i18n="filter_category_label">Category</label>
+        <select id="categoryFilter">
+          <option value="All" data-i18n="cat_all">All Categories</option>
+          <option value="Air Quality" data-i18n="cat_air">Air Quality</option>
+          <option value="Water Quality" data-i18n="cat_water">Water Quality</option>
+          <option value="Vegetation" data-i18n="cat_veg">Vegetation</option>
+          <option value="Climate" data-i18n="cat_climate">Climate</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="resetFiltersBtn" data-i18n="btn_reset_filters">Reset Filters</button>
+    </div>
+    <div class="param-toggle-bar">
+      <div class="param-toggle-head">
+        <label data-i18n="param_include_label">Include Parameters in Analysis</label>
+        <span class="param-toggle-actions">
+          <button class="link-btn" id="paramSelectAllBtn" data-i18n="param_select_all">Select all</button>
+          <button class="link-btn" id="paramClearAllBtn" data-i18n="param_clear_all">Clear all</button>
+        </span>
+      </div>
+      <p class="param-toggle-hint" data-i18n="param_hint">Unavailable or unreliable parameters can be excluded — everything else (charts, anomalies, risk scores, report) recalculates automatically and is unaffected.</p>
+      <div class="param-chip-row" id="paramCheckboxRow"></div>
+      <div class="param-toggle-warn hidden" id="paramNoneWarning" data-i18n="param_none_warning">Select at least one parameter to run the analysis.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     4. DATA QUALITY ANALYSIS
+     ============================================================ -->
+<section id="quality" class="section-alt hidden">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step2">Step 2</div>
+    <h2 class="section-title" data-i18n="quality_title">Data Quality Analysis</h2>
+    <p class="section-sub" data-i18n="quality_sub">Automated structural checks run the moment a dataset is loaded.</p>
+    <div class="grid grid-4" id="qualityGrid"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     5. ENVIRONMENTAL INDICATORS DASHBOARD
+     ============================================================ -->
+<section id="dashboard" class="hidden">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step3">Step 3</div>
+    <h2 class="section-title" data-i18n="dashboard_title">Environmental Indicators Dashboard</h2>
+    <p class="section-sub" data-i18n="dashboard_sub">Average values across all loaded records, benchmarked against reference environmental thresholds.</p>
+    <div class="grid grid-4" id="indicatorGrid"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     6. CHARTS
+     ============================================================ -->
+<section id="charts" class="section-alt hidden">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step4">Step 4</div>
+    <h2 class="section-title" data-i18n="charts_title">Trend &amp; Correlation Charts</h2>
+    <p class="section-sub" data-i18n="charts_sub">Visualizations generated automatically with Chart.js from your dataset.</p>
+    <div class="grid grid-2">
+      <div class="card chart-card">
+        <h4 data-i18n="chart1_title">PM10 &amp; PM2.5 Over Time</h4>
+        <div class="chart-sub" data-i18n="chart1_sub">Particulate matter concentration trend across all records</div>
+        <canvas id="chartPM"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h4 data-i18n="chart2_title">Average Pollutants by Location</h4>
+        <div class="chart-sub" data-i18n="chart2_sub">PM10, PM2.5 and NO2 comparison across monitoring sites</div>
+        <canvas id="chartLocationBar"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h4 data-i18n="chart3_title">NDVI &amp; Rainfall Over Time</h4>
+        <div class="chart-sub" data-i18n="chart3_sub">Vegetation index tracked against precipitation</div>
+        <canvas id="chartNdviRain"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h4 data-i18n="chart4_title">Temperature vs PM10</h4>
+        <div class="chart-sub" data-i18n="chart4_sub">Scatter relationship between heat and particulate levels</div>
+        <canvas id="chartScatter"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     7. ANOMALY DETECTION
+     ============================================================ -->
+<section id="anomalies" class="hidden">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step5">Step 5</div>
+    <h2 class="section-title" data-i18n="anomalies_title">Anomaly Detection</h2>
+    <p class="section-sub" data-i18n="anomalies_sub">Statistical outliers identified using z-score analysis (|z| &gt; 2) across key environmental parameters.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="th_date">Date</th><th data-i18n="th_location">Location</th><th data-i18n="th_parameter">Parameter</th>
+            <th data-i18n="th_value">Value</th><th data-i18n="th_severity">Severity</th><th data-i18n="th_explanation">Possible Explanation</th>
+          </tr>
+        </thead>
+        <tbody id="anomalyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     8. SIMPLE MAP SECTION
+     ============================================================ -->
+<section id="map" class="section-alt hidden">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step6">Step 6</div>
+    <h2 class="section-title" data-i18n="map_title">Monitoring Locations Map</h2>
+    <p class="section-sub" data-i18n="map_sub">Simplified spatial view plotted from latitude/longitude. Hover a dot for location name and risk level.</p>
+    <div class="map-panel" id="mapPanel"></div>
+    <div class="map-legend">
+      <span><i class="legend-dot" style="background:var(--good)"></i><span data-i18n="rec_Low">Low Priority</span></span>
+      <span><i class="legend-dot" style="background:var(--moderate)"></i><span data-i18n="rec_Medium">Medium Priority</span></span>
+      <span><i class="legend-dot" style="background:var(--warning)"></i><span data-i18n="rec_High">High Priority</span></span>
+      <span><i class="legend-dot" style="background:var(--critical)"></i><span data-i18n="rec_Urgent">Urgent Investigation</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     EXTRA: LOCATION RISK TABLE
+     ============================================================ -->
+<section id="risk" class="hidden">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step7">Step 7</div>
+    <h2 class="section-title" data-i18n="risk_title">Location Risk Scoring</h2>
+    <p class="section-sub" data-i18n="risk_sub">Composite risk score (0–100) per location, derived from indicator status and detected anomalies.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="th_location">Location</th><th data-i18n="th_records">Records</th>
+            <th data-i18n="th_anomalies">Anomalies</th><th data-i18n="th_risk">Risk Score</th><th data-i18n="th_recommendation">Recommendation</th>
+          </tr>
+        </thead>
+        <tbody id="riskTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     9. AI-STYLE REPORT GENERATOR
+     ============================================================ -->
+<section id="report" class="section-alt hidden">
+  <div class="container">
+    <div class="badge-tag" data-i18n="step8">Step 8</div>
+    <h2 class="section-title" data-i18n="report_title">AI-Generated Environmental Report</h2>
+    <p class="section-sub" data-i18n="report_sub">A scientific-style narrative summary automatically compiled from the analyzed dataset.</p>
+    <div class="two-col">
+      <div class="report-card">
+        <h3 data-i18n="report_card_title">Scientific Summary Report</h3>
+        <div class="report-body" id="reportBody" data-i18n="report_placeholder">Load a dataset to generate the report.</div>
+      </div>
+      <div>
+        <div class="card">
+          <h4 data-i18n="export_title">Export Options</h4>
+          <p style="font-size:.85rem;" data-i18n="export_desc">Download the generated report or the cleaned dataset for offline use.</p>
+          <div class="export-row" style="flex-direction:column;">
+            <button class="btn btn-primary btn-sm" id="downloadReportBtn" data-i18n="btn_download_report">⬇ Download Report (.txt)</button>
+            <button class="btn btn-secondary btn-sm" id="downloadCsvBtn" data-i18n="btn_download_csv">⬇ Download Cleaned Data (.csv)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer data-i18n="footer_text">
+  Environmental AI Analyst — Client-side demo platform. All analysis runs locally in your browser; no data is uploaded to a server.
+</footer>
+
+  </main>
+</div><!-- /app-shell -->
+
+<!-- Floating tooltip element reused by the map -->
+<div class="map-tooltip" id="mapTooltip"></div>
+
+<script>
+/* =====================================================================
+   ENVIRONMENTAL AI ANALYST — CORE APPLICATION LOGIC
+   Pure vanilla JS. No backend. No frameworks. Chart.js for visuals.
+   Bilingual (English / Arabic) with full RTL support.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   0. GLOBAL STATE
+   --------------------------------------------------------------------- */
+let currentLang = 'en';
+
+const AppState = {
+  rawRows: [],        // parsed + normalized rows (array of objects)
+  cleanedRows: [],     // missing-value-filled, de-duplicated rows
+  columns: [],          // original detected columns (normalized keys present)
+  numericColumns: [],   // subset of columns that are numeric
+  quality: null,         // data quality metrics object
+  anomalies: [],          // detected anomalies {date,location,param,value,zscore,severity,direction}
+  locationStats: [],       // per-location aggregation + risk score
+  charts: {},                // Chart.js instances, keyed by canvas id
+  filters: { search: '', category: 'All', excludedParams: new Set() } // excludedParams: user-deselected parameters, omitted from every analysis
+};
+
+/* The 8 core parameters the platform analyzes; users may exclude any subset via the UI */
+const ALL_ANALYSIS_PARAMS = ['pm10','pm25','no2','rainfall','temperature','ndvi','ph','tds'];
+function includedAnalysisParams(){
+  return ALL_ANALYSIS_PARAMS.filter(p => !AppState.filters.excludedParams.has(p));
+}
+
+/* ---------------------------------------------------------------------
+   1. COLUMN ALIASES — flexible detection of uploaded CSV/Excel headers
+      Supports English and Arabic header names.
+   --------------------------------------------------------------------- */
+const COLUMN_ALIASES = {
+  date:        ['date','sampling_date','sample_date','timestamp','التاريخ','تاريخ'],
+  location:    ['location','site','station','name','site_name','الموقع','موقع','المحطة'],
+  latitude:    ['latitude','lat','خط العرض','خط_العرض'],
+  longitude:   ['longitude','lon','lng','long','خط الطول','خط_الطول'],
+  pm10:        ['pm10','pm_10'],
+  pm25:        ['pm2.5','pm25','pm_2.5','pm_25'],
+  no2:         ['no2'],
+  so2:         ['so2'],
+  rainfall:    ['rainfall','precipitation','rain','rain_mm','الأمطار','امطار','هطول الأمطار'],
+  temperature: ['temperature','temp','درجة الحرارة','الحرارة'],
+  ndvi:        ['ndvi'],
+  ph:          ['ph'],
+  ec:          ['ec','electrical_conductivity'],
+  tds:         ['tds']
+};
+
+const NUMERIC_KEYS = ['pm10','pm25','no2','so2','rainfall','temperature','ndvi','ph','ec','tds','latitude','longitude'];
+
+/* Parameter display labels — per language */
+const PARAM_LABELS = {
+  en: { pm10:'PM10', pm25:'PM2.5', no2:'NO2', so2:'SO2', rainfall:'Rainfall', temperature:'Temperature', ndvi:'NDVI', ph:'pH', ec:'EC', tds:'TDS' },
+  ar: { pm10:'PM10', pm25:'PM2.5', no2:'NO2', so2:'SO2', rainfall:'الأمطار', temperature:'درجة الحرارة', ndvi:'NDVI', ph:'الأس الهيدروجيني (pH)', ec:'التوصيل الكهربائي (EC)', tds:'الأملاح الذائبة (TDS)' }
+};
+const PARAM_UNITS = {
+  pm10:'µg/m³', pm25:'µg/m³', no2:'ppb', so2:'ppb', rainfall:'mm',
+  temperature:'°C', ndvi:'', ph:'', ec:'µS/cm', tds:'mg/L'
+};
+
+/* Category grouping used by the category filter (values stay in English internally) */
+const CATEGORY_MAP = {
+  'Air Quality':   ['pm10','pm25','no2','so2'],
+  'Water Quality': ['ph','ec','tds'],
+  'Vegetation':    ['ndvi'],
+  'Climate':       ['rainfall','temperature']
+};
+
+/* Status / severity / recommendation label translations (internal keys stay in English for CSS classes) */
+const STATUS_LABELS = {
+  en:{ Good:'Good', Moderate:'Moderate', Warning:'Warning', Critical:'Critical' },
+  ar:{ Good:'جيد', Moderate:'متوسط', Warning:'تحذير', Critical:'حرج' }
+};
+const SEVERITY_LABELS = {
+  en:{ Moderate:'Moderate', High:'High', Critical:'Critical' },
+  ar:{ Moderate:'متوسطة', High:'مرتفعة', Critical:'حرجة' }
+};
+const REC_LABELS = {
+  en:{ Low:'Low Priority', Medium:'Medium Priority', High:'High Priority', Urgent:'Urgent Investigation' },
+  ar:{ Low:'أولوية منخفضة', Medium:'أولوية متوسطة', High:'أولوية عالية', Urgent:'تحقيق عاجل' }
+};
+
+/* ---------------------------------------------------------------------
+   2. UTILITIES
+   --------------------------------------------------------------------- */
+function normalizeHeader(h){
+  // Keep unicode letters (so Arabic headers survive), digits, dot and underscore
+  return String(h).trim().toLowerCase().replace(/\s+/g,'_').replace(/[^\p{L}\p{N}._]/gu,'');
+}
+
+function detectKey(header){
+  const norm = normalizeHeader(header);
+  for(const key in COLUMN_ALIASES){
+    if(COLUMN_ALIASES[key].some(alias => normalizeHeader(alias) === norm)) return key;
+  }
+  return norm; // unmapped column kept under its own normalized name
+}
+
+function arabicDigitsToWestern(s){
+  return String(s)
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+}
+
+function toNumber(v){
+  if(v === null || v === undefined || v === '') return NaN;
+  const cleaned = arabicDigitsToWestern(String(v)).replace(/[^\d.\-eE]/g,'');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? NaN : n;
+}
+
+function mean(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : NaN; }
+function stddev(arr){
+  if(arr.length < 2) return 0;
+  const m = mean(arr);
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)*(v-m),0)/arr.length);
+}
+function round(v,d=2){ return isNaN(v) ? v : Math.round(v*Math.pow(10,d))/Math.pow(10,d); }
+function fmt(v,d=2){ return (v===undefined||v===null||isNaN(v)) ? '—' : round(v,d).toLocaleString('en-US'); }
+
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* Simple CSV line splitter with basic quoted-field support */
+function splitCsvLine(line){
+  const out = []; let cur=''; let inQuotes=false;
+  for(let i=0;i<line.length;i++){
+    const c = line[i];
+    if(c === '"'){
+      if(inQuotes && line[i+1] === '"'){ cur+='"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if(c === ',' && !inQuotes){
+      out.push(cur); cur='';
+    } else { cur += c; }
+  }
+  out.push(cur);
+  return out.map(s=>s.trim());
+}
+
+/* ---------------------------------------------------------------------
+   3. CSV PARSING + NORMALIZATION
+   --------------------------------------------------------------------- */
+function parseCsv(text){
+  const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0);
+  if(lines.length < 2){
+    throw new Error(currentLang==='ar' ? 'يبدو أن الملف فارغ أو لا يحتوي على صف عناوين.' : 'The file appears to be empty or missing a header row.');
+  }
+  const rawHeaders = splitCsvLine(lines[0]);
+  const keys = rawHeaders.map(detectKey);
+
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const cells = splitCsvLine(lines[i]);
+    if(cells.length === 1 && cells[0] === '') continue;
+    const row = {};
+    keys.forEach((k,idx)=>{ row[k] = cells[idx] !== undefined ? cells[idx] : ''; });
+    rows.push(row);
+  }
+
+  // Coerce numeric fields
+  rows.forEach(row=>{
+    keys.forEach(k=>{
+      if(NUMERIC_KEYS.includes(k) || (!['date','location'].includes(k) && /^-?[\d٠-٩]/.test(String(row[k]).trim()))){
+        const n = toNumber(row[k]);
+        row[k] = row[k] === '' ? '' : (isNaN(n) ? row[k] : n);
+      }
+    });
+  });
+
+  return { rows, keys: [...new Set(keys)] };
+}
+
+/* ---------------------------------------------------------------------
+   4. DEMO DATA GENERATOR (≥20 records, no upload required)
+   --------------------------------------------------------------------- */
+function generateDemoData(){
+  const sitesEn = ['Riverside Station','Downtown Monitor','Industrial Zone A','Greenfield Reserve','Coastal Wetlands'];
+  const sitesAr = ['محطة نهر الرياض','مرصد وسط المدينة','المنطقة الصناعية أ','محمية الحقول الخضراء','الأراضي الرطبة الساحلية'];
+  const siteNames = currentLang==='ar' ? sitesAr : sitesEn;
+
+  const bases = [
+    { latitude:31.52, longitude:74.35, base:{pm10:70, pm25:38, no2:22, ndvi:0.55, ph:7.2, tds:320} },
+    { latitude:31.56, longitude:74.32, base:{pm10:145, pm25:88, no2:48, ndvi:0.28, ph:7.6, tds:410} },
+    { latitude:31.49, longitude:74.40, base:{pm10:210, pm25:130, no2:65, ndvi:0.18, ph:6.4, tds:980} },
+    { latitude:31.61, longitude:74.28, base:{pm10:38, pm25:16, no2:12, ndvi:0.78, ph:6.9, tds:180} },
+    { latitude:31.44, longitude:74.46, base:{pm10:55, pm25:24, no2:18, ndvi:0.62, ph:7.8, tds:650} }
+  ];
+
+  const rows = [];
+  const startDate = new Date('2026-05-01');
+  let dayOffset = 0;
+
+  bases.forEach((site, sIdx)=>{
+    const locationName = siteNames[sIdx];
+    for(let i=0;i<5;i++){ // 5 records per site = 25 total
+      const d = new Date(startDate); d.setDate(d.getDate() + dayOffset);
+      dayOffset += 3;
+
+      const jitter = (base, spread) => round(base + (Math.random()-0.5)*spread, 2);
+
+      let pm10 = jitter(site.base.pm10, site.base.pm10*0.3);
+      let pm25 = jitter(site.base.pm25, site.base.pm25*0.3);
+      let no2  = jitter(site.base.no2, site.base.no2*0.3);
+      let rainfall = round(Math.max(0, (Math.random()*40) + (sIdx===3?20:0)),1);
+      let temperature = round(28 + (Math.random()-0.5)*10 + (sIdx===2?4:0),1);
+      let ndvi = round(Math.min(0.95, Math.max(0.02, site.base.ndvi + (Math.random()-0.5)*0.12)),2);
+      let ph = round(site.base.ph + (Math.random()-0.5)*0.6,2);
+      let tds = jitter(site.base.tds, site.base.tds*0.25);
+
+      // Inject a handful of deliberate anomalies for demonstration
+      if(sIdx===2 && i===2){ pm10 = 410; pm25=260; }
+      if(sIdx===3 && i===3){ ndvi = 0.08; }
+      if(sIdx===4 && i===4){ tds = 2400; ph = 4.2; }
+      if(sIdx===1 && i===1){ no2 = 140; }
+
+      rows.push({
+        date: d.toISOString().slice(0,10),
+        location: locationName,
+        latitude: site.latitude + (Math.random()-0.5)*0.01,
+        longitude: site.longitude + (Math.random()-0.5)*0.01,
+        pm10, pm25, no2, rainfall, temperature, ndvi, ph, tds
+      });
+    }
+  });
+
+  return { rows, keys:['date','location','latitude','longitude','pm10','pm25','no2','rainfall','temperature','ndvi','ph','tds'] };
+}
+
+/* ---------------------------------------------------------------------
+   5. DATA QUALITY ANALYSIS
+   --------------------------------------------------------------------- */
+function analyzeDataQuality(rows, keys){
+  const numRecords = rows.length;
+  const numColumns = keys.length;
+
+  let totalCells = numRecords * numColumns;
+  let missingCells = 0;
+  rows.forEach(r=>{
+    keys.forEach(k=>{
+      const v = r[k];
+      if(v === '' || v === undefined || v === null || (typeof v === 'number' && isNaN(v))) missingCells++;
+    });
+  });
+  const missingPct = totalCells ? round((missingCells/totalCells)*100,1) : 0;
+
+  // Duplicate detection (based on full-row signature)
+  const seen = new Set(); let duplicates = 0;
+  rows.forEach(r=>{
+    const sig = keys.map(k=>r[k]).join('|');
+    if(seen.has(sig)) duplicates++; else seen.add(sig);
+  });
+
+  // Numeric column detection: a column is numeric if >70% of non-empty values are numbers
+  const numericColumns = keys.filter(k=>{
+    const vals = rows.map(r=>r[k]).filter(v=>v!=='' && v!==undefined);
+    if(!vals.length) return false;
+    const numericCount = vals.filter(v=>typeof v==='number' && !isNaN(v)).length;
+    return (numericCount/vals.length) > 0.7;
+  });
+
+  // Quality score: penalize missing data, duplicates, and reward numeric coverage
+  let score = 100;
+  score -= missingPct * 0.6;
+  score -= (numRecords ? (duplicates/numRecords)*100 : 0) * 0.3;
+  if(numericColumns.length < 3) score -= 10;
+  score = Math.max(0, Math.min(100, round(score,0)));
+
+  return { numRecords, numColumns, missingPct, duplicates, numericColumns, score };
+}
+
+/* Fill missing numeric values with column mean; fill missing text with 'Unknown' */
+function cleanRows(rows, keys, numericColumns){
+  const colMeans = {};
+  numericColumns.forEach(k=>{
+    const vals = rows.map(r=>r[k]).filter(v=>typeof v==='number' && !isNaN(v));
+    colMeans[k] = vals.length ? mean(vals) : 0;
+  });
+
+  const unknownLabel = currentLang==='ar' ? 'غير معروف' : 'Unknown';
+  const cleaned = rows.map(r=>{
+    const nr = {...r};
+    keys.forEach(k=>{
+      const v = nr[k];
+      const isMissing = v === '' || v === undefined || v === null || (typeof v==='number' && isNaN(v));
+      if(isMissing){
+        nr[k] = numericColumns.includes(k) ? round(colMeans[k],2) : unknownLabel;
+      }
+    });
+    return nr;
+  });
+
+  // Remove exact duplicate rows
+  const seen = new Set(); const deduped = [];
+  cleaned.forEach(r=>{
+    const sig = keys.map(k=>r[k]).join('|');
+    if(!seen.has(sig)){ seen.add(sig); deduped.push(r); }
+  });
+  return deduped;
+}
+
+/* ---------------------------------------------------------------------
+   6. STATUS THRESHOLDS (Good / Moderate / Warning / Critical)
+   --------------------------------------------------------------------- */
+function getStatus(param, value){
+  if(value===undefined || value===null || isNaN(value)) return {label:'Good', score:0};
+  const t = {
+    pm10:        [[54,'Good'],[154,'Moderate'],[254,'Warning'],[Infinity,'Critical']],
+    pm25:        [[12,'Good'],[35,'Moderate'],[55,'Warning'],[Infinity,'Critical']],
+    no2:         [[40,'Good'],[80,'Moderate'],[180,'Warning'],[Infinity,'Critical']],
+    so2:         [[20,'Good'],[80,'Moderate'],[250,'Warning'],[Infinity,'Critical']],
+    tds:         [[500,'Good'],[1000,'Moderate'],[2000,'Warning'],[Infinity,'Critical']],
+    rainfall:    [[100,'Good'],[150,'Moderate'],[250,'Warning'],[Infinity,'Critical']],
+    temperature: [[30,'Good'],[35,'Moderate'],[40,'Warning'],[Infinity,'Critical']]
+  };
+  const scoreMap = {Good:0, Moderate:1, Warning:2, Critical:3};
+
+  if(param==='ndvi'){
+    let label;
+    if(value>0.6) label='Good'; else if(value>0.4) label='Moderate'; else if(value>0.2) label='Warning'; else label='Critical';
+    return {label, score:scoreMap[label]};
+  }
+  if(param==='ph'){
+    let label;
+    if(value>=6.5 && value<=8.5) label='Good';
+    else if((value>=6 && value<6.5) || (value>8.5 && value<=9)) label='Moderate';
+    else if((value>=5 && value<6) || (value>9 && value<=9.5)) label='Warning';
+    else label='Critical';
+    return {label, score:scoreMap[label]};
+  }
+  if(t[param]){
+    for(const [limit,label] of t[param]){ if(value<=limit) return {label, score:scoreMap[label]}; }
+  }
+  return {label:'Good', score:0};
+}
+
+/* ---------------------------------------------------------------------
+   7. ANOMALY EXPLANATIONS (per language, keyed by param + direction)
+   --------------------------------------------------------------------- */
+const ANOMALY_EXPLANATIONS = {
+  en:{
+    pm10:  { high:'High PM10 may indicate dust storm, construction activity, or dry conditions.', low:'Unusually low PM10 suggests improved air quality or reduced particulate sources.' },
+    pm25:  { high:'High PM2.5 may indicate vehicle emissions, industrial activity, or biomass burning.', low:'Unusually low PM2.5 suggests cleaner air conditions or reduced combustion sources.' },
+    no2:   { high:'High NO2 may indicate vehicle traffic congestion or industrial combustion.', low:'Low NO2 may reflect reduced traffic or industrial activity.' },
+    temperature: { high:'Abnormally high temperature may indicate heatwave conditions or urban heat island effect.', low:'Abnormally low temperature may indicate a cold spell or seasonal anomaly.' },
+    ndvi:  { high:'Unusually high NDVI may indicate a lush growth season or irrigation influence.', low:'Low NDVI may indicate vegetation stress, drought, or land degradation.' },
+    ph:    { high:'Abnormal pH may indicate possible water or soil quality issue (alkaline shift).', low:'Abnormal pH may indicate possible water or soil quality issue (acidic shift).' },
+    tds:   { high:'High TDS may indicate water salinity or contamination.', low:'Low TDS may indicate dilution or unusually low mineral content in water.' }
+  },
+  ar:{
+    pm10:  { high:'قد يشير ارتفاع PM10 إلى عاصفة ترابية أو أنشطة إنشائية أو ظروف جافة.', low:'قد يشير الانخفاض غير المعتاد في PM10 إلى تحسّن جودة الهواء أو انخفاض مصادر الجسيمات العالقة.' },
+    pm25:  { high:'قد يشير ارتفاع PM2.5 إلى انبعاثات المركبات أو الأنشطة الصناعية أو حرق الكتلة الحيوية.', low:'قد يشير الانخفاض غير المعتاد في PM2.5 إلى هواء أنظف أو تراجع مصادر الاحتراق.' },
+    no2:   { high:'قد يشير ارتفاع NO2 إلى ازدحام مروري أو احتراق صناعي.', low:'قد يشير انخفاض NO2 إلى تراجع النشاط المروري أو الصناعي.' },
+    temperature: { high:'قد يشير الارتفاع غير الطبيعي في درجة الحرارة إلى موجة حر أو تأثير الجزيرة الحرارية الحضرية.', low:'قد يشير الانخفاض غير الطبيعي في درجة الحرارة إلى موجة برد أو تغيّر موسمي.' },
+    ndvi:  { high:'قد يشير الارتفاع غير المعتاد في NDVI إلى موسم نمو كثيف أو تأثير الري.', low:'قد يشير انخفاض NDVI إلى إجهاد نباتي أو جفاف أو تدهور الأراضي.' },
+    ph:    { high:'قد يشير الأس الهيدروجيني غير الطبيعي إلى مشكلة محتملة في جودة المياه أو التربة (اتجاه قلوي).', low:'قد يشير الأس الهيدروجيني غير الطبيعي إلى مشكلة محتملة في جودة المياه أو التربة (اتجاه حمضي).' },
+    tds:   { high:'قد يشير ارتفاع الأملاح الذائبة (TDS) إلى ملوحة المياه أو تلوثها.', low:'قد يشير انخفاض الأملاح الذائبة (TDS) إلى تخفيف المياه أو انخفاض المحتوى المعدني.' }
+  }
+};
+const ANOMALY_FALLBACK = { en:'Value deviates significantly from the expected baseline range.', ar:'القيمة تنحرف بشكل ملحوظ عن النطاق الأساسي المتوقع.' };
+
+function getAnomalyExplanation(param, direction, lang){
+  return (ANOMALY_EXPLANATIONS[lang][param] && ANOMALY_EXPLANATIONS[lang][param][direction]) || ANOMALY_FALLBACK[lang];
+}
+
+function detectAnomalies(rows){
+  // Only run detection for parameters the user has included (excluded params are skipped entirely,
+  // so they cannot contribute anomalies, risk score, or report content).
+  const params = ['pm10','pm25','no2','temperature','ndvi','ph','tds'].filter(p => includedAnalysisParams().includes(p));
+  const anomalies = [];
+
+  params.forEach(param=>{
+    const vals = rows.map(r=>r[param]).filter(v=>typeof v==='number' && !isNaN(v));
+    if(vals.length < 4) return; // not enough data to establish a baseline
+    const m = mean(vals); const sd = stddev(vals);
+    if(sd === 0) return;
+
+    rows.forEach(r=>{
+      const v = r[param];
+      if(typeof v !== 'number' || isNaN(v)) return;
+      const z = (v-m)/sd;
+      const az = Math.abs(z);
+      if(az > 2){
+        let severity = az>=3 ? 'Critical' : (az>=2.5 ? 'High' : 'Moderate');
+        const direction = z>0 ? 'high' : 'low';
+        anomalies.push({
+          date:r.date || '—', location:r.location || '—', param,
+          value:v, zscore:round(z,2), severity, direction
+        });
+      }
+    });
+  });
+
+  // Sort most severe first
+  const rank = {Critical:3, High:2, Moderate:1};
+  anomalies.sort((a,b)=> rank[b.severity]-rank[a.severity] || Math.abs(b.zscore)-Math.abs(a.zscore));
+  return anomalies;
+}
+
+/* ---------------------------------------------------------------------
+   8. LOCATION RISK SCORING
+   --------------------------------------------------------------------- */
+function computeLocationStats(rows, anomalies){
+  const byLoc = {};
+  rows.forEach(r=>{
+    const loc = r.location || 'Unknown';
+    if(!byLoc[loc]) byLoc[loc] = { location:loc, rows:[], latitude:r.latitude, longitude:r.longitude };
+    byLoc[loc].rows.push(r);
+  });
+
+  // 'so2' is always included (not user-excludable); the 8 core params respect the exclusion toggle
+  const statusParams = ['so2', ...includedAnalysisParams()];
+
+  return Object.values(byLoc).map(entry=>{
+    let statusScoreSum = 0, statusScoreCount = 0;
+    statusParams.forEach(p=>{
+      const vals = entry.rows.map(r=>r[p]).filter(v=>typeof v==='number' && !isNaN(v));
+      if(vals.length){
+        const avg = mean(vals);
+        statusScoreSum += getStatus(p, avg).score;
+        statusScoreCount++;
+      }
+    });
+    const avgStatusScore = statusScoreCount ? statusScoreSum/statusScoreCount : 0; // 0-3
+    const locAnomalies = anomalies.filter(a=>a.location===entry.location);
+
+    let risk = (avgStatusScore/3)*70 + Math.min(30, locAnomalies.length*7);
+    risk = Math.max(0, Math.min(100, round(risk,0)));
+
+    let recommendation;
+    if(risk<=25) recommendation='Low';
+    else if(risk<=50) recommendation='Medium';
+    else if(risk<=75) recommendation='High';
+    else recommendation='Urgent';
+
+    return {
+      location: entry.location,
+      latitude: entry.latitude, longitude: entry.longitude,
+      records: entry.rows.length,
+      anomalyCount: locAnomalies.length,
+      risk, recommendation
+    };
+  }).sort((a,b)=>b.risk-a.risk);
+}
+
+/* ---------------------------------------------------------------------
+   9. RENDERING — DATA QUALITY
+   --------------------------------------------------------------------- */
+function renderQuality(q){
+  const grid = document.getElementById('qualityGrid');
+  const scoreColor = q.score>=80?'var(--good)':q.score>=60?'var(--moderate)':q.score>=40?'var(--warning)':'var(--critical)';
+  const L = currentLang;
+  const T = {
+    en:{records:'Records', cols:'Columns', missing:'Missing Values', dup:'Duplicate Rows', numCols:'Detected Numeric Columns',
+        qScore:'Data Quality Score', n1:'Total rows analyzed', n2:'Detected fields', n3:'Of all data cells', n4:'Exact row matches',
+        n5:'Score out of 100, based on completeness, duplication and numeric field coverage.', none:'None detected'},
+    ar:{records:'عدد السجلات', cols:'عدد الأعمدة', missing:'نسبة القيم المفقودة', dup:'الصفوف المكررة', numCols:'الأعمدة الرقمية المكتشفة',
+        qScore:'مؤشر جودة البيانات', n1:'إجمالي الصفوف التي تم تحليلها', n2:'الحقول المكتشفة', n3:'من إجمالي خلايا البيانات', n4:'صفوف متطابقة تمامًا',
+        n5:'الدرجة من 100، بناءً على الاكتمال والتكرار وتغطية الحقول الرقمية.', none:'لم يتم اكتشاف أي عمود'}
+  }[L];
+
+  grid.innerHTML = `
+    <div class="card stat-card"><div class="stat-label">${T.records}</div><div class="stat-value">${q.numRecords}</div><div class="stat-note">${T.n1}</div></div>
+    <div class="card stat-card"><div class="stat-label">${T.cols}</div><div class="stat-value">${q.numColumns}</div><div class="stat-note">${T.n2}</div></div>
+    <div class="card stat-card"><div class="stat-label">${T.missing}</div><div class="stat-value">${q.missingPct}%</div><div class="stat-note">${T.n3}</div></div>
+    <div class="card stat-card"><div class="stat-label">${T.dup}</div><div class="stat-value">${q.duplicates}</div><div class="stat-note">${T.n4}</div></div>
+    <div class="card stat-card" style="grid-column:span 2;">
+      <div class="stat-label">${T.numCols}</div>
+      <div class="chip-row" style="margin-top:10px;">${q.numericColumns.map(c=>`<span class="chip">${PARAM_LABELS[L][c]||c}</span>`).join('') || `<span class="chip">${T.none}</span>`}</div>
+    </div>
+    <div class="card stat-card" style="grid-column:span 2;">
+      <div class="stat-label">${T.qScore}</div>
+      <div class="quality-score-wrap" style="margin-top:8px;">
+        <div class="score-ring" style="background:conic-gradient(${scoreColor} ${q.score*3.6}deg, var(--line) 0deg);"><span>${q.score}</span></div>
+        <div class="stat-note">${T.n5}</div>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------------
+   10. RENDERING — INDICATORS DASHBOARD (with category + search filters)
+   --------------------------------------------------------------------- */
+function activeIndicatorParams(){
+  const cat = AppState.filters.category;
+  const allParams = includedAnalysisParams(); // respects the user's include/exclude toggle
+  if(cat==='All') return allParams;
+  return allParams.filter(p => (CATEGORY_MAP[cat]||[]).includes(p));
+}
+
+function filteredRows(){
+  const search = AppState.filters.search.trim().toLowerCase();
+  return AppState.cleanedRows.filter(r=>{
+    const loc = String(r.location||'').toLowerCase();
+    return !search || loc.includes(search);
+  });
+}
+
+function renderIndicators(){
+  const rows = filteredRows();
+  const grid = document.getElementById('indicatorGrid');
+  const params = activeIndicatorParams();
+  const L = currentLang;
+  const avgWord = L==='ar' ? 'متوسط' : 'Average';
+  const emptyMsg = L==='ar' ? 'لا توجد سجلات مطابقة للفلاتر الحالية.' : 'No records match the current filters.';
+  const emptyMsg2 = L==='ar' ? 'لا توجد مؤشرات متاحة لهذه الفئة.' : 'No indicators available for this category.';
+
+  if(!rows.length){
+    grid.innerHTML = `<div class="card"><div class="empty-note">${emptyMsg}</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = params.map(p=>{
+    const vals = rows.map(r=>r[p]).filter(v=>typeof v==='number' && !isNaN(v));
+    if(!vals.length) return '';
+    const avg = round(mean(vals),2);
+    const status = getStatus(p, avg);
+    const barPct = Math.min(100, (status.score/3)*100 + 15);
+    const barColor = {Good:'var(--good)',Moderate:'var(--moderate)',Warning:'var(--warning)',Critical:'var(--critical)'}[status.label] || 'var(--good)';
+    return `
+      <div class="card indicator-card">
+        <div class="stat-label"><span>${avgWord} ${PARAM_LABELS[L][p]}</span></div>
+        <div class="stat-value">${fmt(avg)} <span class="unit">${PARAM_UNITS[p]}</span></div>
+        <span class="status-pill status-${status.label}">${STATUS_LABELS[L][status.label]}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${barPct}%;background:${barColor};"></div></div>
+      </div>`;
+  }).join('') || `<div class="card"><div class="empty-note">${emptyMsg2}</div></div>`;
+}
+
+/* ---------------------------------------------------------------------
+   11. RENDERING — CHARTS (Chart.js)
+   --------------------------------------------------------------------- */
+const CHART_GREEN = '#0e6b52';
+const CHART_BLUE = '#1c6e8c';
+const CHART_ORANGE = '#b1791f';
+const CHART_TEAL = '#0e8f83';
+
+const CHART_TEXT = {
+  en:{ pm10:'PM10 (µg/m³)', pm25:'PM2.5 (µg/m³)', ndvi:'NDVI', rainfall:'Rainfall (mm)', temperature:'Temperature (°C)', tempVsPm10:'Temperature vs PM10' },
+  ar:{ pm10:'PM10 (ميكروغرام/م³)', pm25:'PM2.5 (ميكروغرام/م³)', ndvi:'NDVI', rainfall:'الأمطار (مم)', temperature:'درجة الحرارة (°C)', tempVsPm10:'درجة الحرارة مقابل PM10' }
+};
+
+function destroyChart(id){
+  if(AppState.charts[id]){ AppState.charts[id].destroy(); delete AppState.charts[id]; }
+}
+
+/* Shows/hides an inline "not enough data" message for a chart card without disturbing the grid layout.
+   Used when a parameter feeding that chart has been excluded by the user or is missing from the dataset. */
+function setChartEmptyState(canvasId, show, message){
+  const canvas = document.getElementById(canvasId);
+  let note = document.getElementById(canvasId + '_empty');
+  if(show){
+    canvas.style.display = 'none';
+    if(!note){
+      note = document.createElement('div');
+      note.id = canvasId + '_empty';
+      note.className = 'empty-note';
+      canvas.parentNode.insertBefore(note, canvas);
+    }
+    note.textContent = message;
+    note.style.display = 'block';
+  } else {
+    canvas.style.display = '';
+    if(note) note.style.display = 'none';
+  }
+}
+
+function renderCharts(){
+  const rows = filteredRows();
+  const L = currentLang;
+  const CT = CHART_TEXT[L];
+  const IN = includedAnalysisParams(); // currently included parameters
+  const has = p => IN.includes(p);
+  const noDataMsg = L==='ar' ? 'لا توجد بيانات كافية لهذا الرسم (المعيار مستبعد أو غير متوفر).' : 'Not enough data for this chart (parameter excluded or unavailable).';
+
+  if(!rows.length) return;
+  const sorted = [...rows].sort((a,b)=> String(a.date).localeCompare(String(b.date)));
+  const labels = sorted.map(r=>r.date);
+
+  // --- Line chart: PM10 & PM2.5 over time ---
+  destroyChart('chartPM');
+  if(!has('pm10') && !has('pm25')){
+    setChartEmptyState('chartPM', true, noDataMsg);
+  } else {
+    setChartEmptyState('chartPM', false);
+    const datasets = [];
+    if(has('pm10')) datasets.push({ label:CT.pm10, data:sorted.map(r=>r.pm10), borderColor:CHART_GREEN, backgroundColor:'transparent', tension:.3 });
+    if(has('pm25')) datasets.push({ label:CT.pm25, data:sorted.map(r=>r.pm25), borderColor:CHART_BLUE, backgroundColor:'transparent', tension:.3 });
+    AppState.charts.chartPM = new Chart(document.getElementById('chartPM'), {
+      type:'line', data:{ labels, datasets },
+      options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales:{x:{ticks:{maxRotation:45}}} }
+    });
+  }
+
+  // --- Bar chart: average pollutants by location ---
+  destroyChart('chartLocationBar');
+  if(!has('pm10') && !has('pm25') && !has('no2')){
+    setChartEmptyState('chartLocationBar', true, noDataMsg);
+  } else {
+    setChartEmptyState('chartLocationBar', false);
+    const byLoc = {};
+    rows.forEach(r=>{
+      const loc = r.location || 'Unknown';
+      if(!byLoc[loc]) byLoc[loc] = {pm10:[],pm25:[],no2:[]};
+      if(typeof r.pm10==='number') byLoc[loc].pm10.push(r.pm10);
+      if(typeof r.pm25==='number') byLoc[loc].pm25.push(r.pm25);
+      if(typeof r.no2==='number') byLoc[loc].no2.push(r.no2);
+    });
+    const locLabels = Object.keys(byLoc);
+    const datasets = [];
+    if(has('pm10')) datasets.push({ label:'PM10', data:locLabels.map(l=>round(mean(byLoc[l].pm10),1)), backgroundColor:CHART_GREEN });
+    if(has('pm25')) datasets.push({ label:'PM2.5', data:locLabels.map(l=>round(mean(byLoc[l].pm25),1)), backgroundColor:CHART_BLUE });
+    if(has('no2')) datasets.push({ label:'NO2', data:locLabels.map(l=>round(mean(byLoc[l].no2),1)), backgroundColor:CHART_ORANGE });
+    AppState.charts.chartLocationBar = new Chart(document.getElementById('chartLocationBar'), {
+      type:'bar', data:{ labels:locLabels, datasets },
+      options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales:{x:{ticks:{maxRotation:45}}} }
+    });
+  }
+
+  // --- Line chart: NDVI & rainfall over time (dual axis) ---
+  destroyChart('chartNdviRain');
+  if(!has('ndvi') && !has('rainfall')){
+    setChartEmptyState('chartNdviRain', true, noDataMsg);
+  } else {
+    setChartEmptyState('chartNdviRain', false);
+    const datasets = [];
+    const scales = { x:{ticks:{maxRotation:45}} };
+    if(has('ndvi')){
+      datasets.push({ label:CT.ndvi, data:sorted.map(r=>r.ndvi), borderColor:CHART_TEAL, backgroundColor:'transparent', tension:.3, yAxisID:'y' });
+      scales.y = {type:'linear',position:'left',title:{display:true,text:CT.ndvi}};
+    }
+    if(has('rainfall')){
+      datasets.push({ label:CT.rainfall, data:sorted.map(r=>r.rainfall), borderColor:CHART_BLUE, backgroundColor:'transparent', tension:.3, yAxisID:'y1' });
+      scales.y1 = {type:'linear',position:'right',title:{display:true,text:CT.rainfall},grid:{drawOnChartArea:false}};
+    }
+    AppState.charts.chartNdviRain = new Chart(document.getElementById('chartNdviRain'), {
+      type:'line', data:{ labels, datasets },
+      options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales }
+    });
+  }
+
+  // --- Scatter: temperature vs PM10 (needs both parameters) ---
+  destroyChart('chartScatter');
+  if(!has('temperature') || !has('pm10')){
+    setChartEmptyState('chartScatter', true, noDataMsg);
+  } else {
+    setChartEmptyState('chartScatter', false);
+    AppState.charts.chartScatter = new Chart(document.getElementById('chartScatter'), {
+      type:'scatter',
+      data:{ datasets:[{ label:CT.tempVsPm10, data:rows.filter(r=>typeof r.temperature==='number' && typeof r.pm10==='number').map(r=>({x:r.temperature,y:r.pm10})), backgroundColor:CHART_ORANGE }] },
+      options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales:{ x:{title:{display:true,text:CT.temperature}}, y:{title:{display:true,text:CT.pm10}} } }
+    });
+  }
+}
+
+/* ---------------------------------------------------------------------
+   12. RENDERING — ANOMALY TABLE
+   --------------------------------------------------------------------- */
+function renderAnomalies(){
+  const search = AppState.filters.search.trim().toLowerCase();
+  const cat = AppState.filters.category;
+  const catParams = cat==='All' ? null : (CATEGORY_MAP[cat]||[]);
+  const L = currentLang;
+
+  const rows = AppState.anomalies.filter(a=>{
+    const locOk = !search || String(a.location).toLowerCase().includes(search);
+    const catOk = !catParams || catParams.includes(a.param);
+    return locOk && catOk;
+  });
+
+  const tbody = document.getElementById('anomalyTableBody');
+  const emptyMsg = L==='ar' ? 'لم يتم اكتشاف أي حالات شاذة للفلاتر الحالية.' : 'No anomalies detected for the current filters.';
+  if(!rows.length){
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-note">${emptyMsg}</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(a=>`
+    <tr>
+      <td>${a.date}</td>
+      <td>${a.location}</td>
+      <td>${PARAM_LABELS[L][a.param]}</td>
+      <td>${fmt(a.value)} ${PARAM_UNITS[a.param]||''}</td>
+      <td><span class="sev-pill sev-${a.severity}">${SEVERITY_LABELS[L][a.severity]}</span></td>
+      <td>${getAnomalyExplanation(a.param, a.direction, L)}</td>
+    </tr>`).join('');
+}
+
+/* ---------------------------------------------------------------------
+   13. RENDERING — MAP PANEL
+   --------------------------------------------------------------------- */
+function renderMap(){
+  const panel = document.getElementById('mapPanel');
+  const tooltip = document.getElementById('mapTooltip');
+  panel.innerHTML = '';
+  const L = currentLang;
+  const riskWord = L==='ar' ? 'المخاطر' : 'Risk';
+
+  const search = AppState.filters.search.trim().toLowerCase();
+  const locs = AppState.locationStats.filter(l=> !search || l.location.toLowerCase().includes(search));
+
+  if(!locs.length){
+    const msg = L==='ar' ? 'لا توجد مواقع لعرضها.' : 'No locations to display.';
+    panel.innerHTML = `<div class="empty-note" style="padding-top:180px;">${msg}</div>`;
+    return;
+  }
+
+  const lats = locs.map(l=>l.latitude).filter(v=>typeof v==='number' && !isNaN(v));
+  const lons = locs.map(l=>l.longitude).filter(v=>typeof v==='number' && !isNaN(v));
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+  const latRange = (maxLat-minLat) || 1;
+  const lonRange = (maxLon-minLon) || 1;
+
+  const colorMap = { Low:'var(--good)', Medium:'var(--moderate)', High:'var(--warning)', Urgent:'var(--critical)' };
+
+  locs.forEach(l=>{
+    if(typeof l.latitude !== 'number' || typeof l.longitude !== 'number') return;
+    const xPct = 8 + ((l.longitude-minLon)/lonRange) * 84;
+    const yPct = 8 + (1 - (l.latitude-minLat)/latRange) * 84;
+
+    const dot = document.createElement('div');
+    dot.className = 'map-dot';
+    dot.style.left = xPct + '%';
+    dot.style.top = yPct + '%';
+    dot.style.background = colorMap[l.recommendation];
+    dot.style.color = colorMap[l.recommendation];
+
+    dot.addEventListener('mousemove', ()=>{
+      tooltip.style.opacity = '1';
+      tooltip.style.left = xPct + '%';
+      tooltip.style.top = yPct + '%';
+      tooltip.innerHTML = `<b>${l.location}</b>${riskWord}: ${REC_LABELS[L][l.recommendation]} (${l.risk}/100)`;
+    });
+    dot.addEventListener('mouseleave', ()=>{ tooltip.style.opacity = '0'; });
+
+    panel.appendChild(dot);
+  });
+}
+
+/* ---------------------------------------------------------------------
+   14. RENDERING — LOCATION RISK TABLE
+   --------------------------------------------------------------------- */
+function renderRiskTable(){
+  const search = AppState.filters.search.trim().toLowerCase();
+  const L = currentLang;
+  const rows = AppState.locationStats.filter(l=> !search || l.location.toLowerCase().includes(search));
+
+  const tbody = document.getElementById('riskTableBody');
+  const emptyMsg = L==='ar' ? 'لا توجد مواقع مطابقة للفلاتر الحالية.' : 'No locations match the current filters.';
+  if(!rows.length){
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-note">${emptyMsg}</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(l=>`
+    <tr>
+      <td>${l.location}</td>
+      <td>${l.records}</td>
+      <td>${l.anomalyCount}</td>
+      <td>${l.risk} / 100</td>
+      <td><span class="rec-pill rec-${l.recommendation}">${REC_LABELS[L][l.recommendation]}</span></td>
+    </tr>`).join('');
+}
+
+/* ---------------------------------------------------------------------
+   15. REPORT GENERATOR (English + Arabic scientific templates)
+   --------------------------------------------------------------------- */
+function correlation(xs, ys){
+  const n = Math.min(xs.length, ys.length);
+  if(n < 3) return NaN;
+  const mx = mean(xs.slice(0,n)), my = mean(ys.slice(0,n));
+  let num=0, dx=0, dy=0;
+  for(let i=0;i<n;i++){ num += (xs[i]-mx)*(ys[i]-my); dx += (xs[i]-mx)**2; dy += (ys[i]-my)**2; }
+  const denom = Math.sqrt(dx*dy);
+  return denom===0 ? NaN : num/denom;
+}
+
+function computeReportStats(lang){
+  const rows = AppState.cleanedRows;
+  const q = AppState.quality;
+  const anomalies = AppState.anomalies;
+  const locStats = AppState.locationStats;
+
+  const dates = rows.map(r=>r.date).filter(Boolean).sort();
+  const dateRange = dates.length ? `${dates[0]} – ${dates[dates.length-1]}` : (lang==='ar' ? 'غير معروفة' : 'unknown range');
+  const uniqueLocations = [...new Set(rows.map(r=>r.location).filter(Boolean))];
+
+  const sorted = [...rows].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const half = Math.floor(sorted.length/2) || 1;
+  const firstHalf = sorted.slice(0, half), secondHalf = sorted.slice(half);
+  const pm10First = mean(firstHalf.map(r=>r.pm10).filter(v=>typeof v==='number'));
+  const pm10Second = mean(secondHalf.map(r=>r.pm10).filter(v=>typeof v==='number'));
+  const pm10Trend = pm10Second - pm10First;
+
+  const ndviVals = rows.map(r=>r.ndvi).filter(v=>typeof v==='number');
+  const rainVals = rows.map(r=>r.rainfall).filter(v=>typeof v==='number');
+  const corr = correlation(rows.map(r=>r.ndvi), rows.map(r=>r.rainfall));
+
+  // Which of the 8 core parameters are currently included (user has not excluded them)
+  const IN = includedAnalysisParams();
+  const pm10Included = IN.includes('pm10');
+  const ndviIncluded = IN.includes('ndvi');
+  const rainfallIncluded = IN.includes('rainfall');
+  const excludedParams = ALL_ANALYSIS_PARAMS.filter(p => !IN.includes(p));
+  const includedLabel = IN.map(p=>PARAM_LABELS[lang][p]).join(lang==='ar' ? '، ' : ', ') || (lang==='ar' ? 'لا يوجد' : 'none');
+  const excludedLabel = excludedParams.map(p=>PARAM_LABELS[lang][p]).join(lang==='ar' ? '، ' : ', ');
+
+  const findings = ['pm10','pm25','no2','rainfall','temperature','ndvi','ph','tds'].filter(p=>IN.includes(p)).map(p=>{
+    const vals = rows.map(r=>r[p]).filter(v=>typeof v==='number' && !isNaN(v));
+    if(!vals.length) return null;
+    const avg = round(mean(vals),2);
+    const status = getStatus(p, avg);
+    return `${PARAM_LABELS[lang][p]}: ${fmt(avg)} ${PARAM_UNITS[p]} (${STATUS_LABELS[lang][status.label]})`;
+  }).filter(Boolean);
+
+  const causes = [...new Set(anomalies.map(a=> getAnomalyExplanation(a.param, a.direction, lang)))].slice(0,6);
+
+  const urgentLocs = locStats.filter(l=>l.recommendation==='Urgent').map(l=>l.location);
+  const highLocs = locStats.filter(l=>l.recommendation==='High').map(l=>l.location);
+
+  return { q, anomalies, locStats, dateRange, uniqueLocations, pm10First, pm10Second, pm10Trend, ndviVals, rainVals, corr, findings, causes, urgentLocs, highLocs, pm10Included, ndviIncluded, rainfallIncluded, includedLabel, excludedLabel, excludedParams };
+}
+
+function generateReportEN(s){
+  const { q, anomalies, dateRange, uniqueLocations, pm10First, pm10Second, pm10Trend, ndviVals, rainVals, corr, findings, causes, urgentLocs, highLocs, pm10Included, ndviIncluded, rainfallIncluded, includedLabel, excludedLabel } = s;
+  const trendWord = isNaN(pm10Trend) ? 'stable' : (pm10Trend > 5 ? 'an increasing' : pm10Trend < -5 ? 'a decreasing' : 'a relatively stable');
+  let corrWord = 'no clear';
+  if(!isNaN(corr)){ corrWord = corr > 0.4 ? 'a positive' : corr < -0.4 ? 'a negative' : 'a weak or negligible'; }
+  const generatedAt = new Date().toLocaleString('en-US');
+
+  return `ENVIRONMENTAL AI ANALYST — AUTOMATED SCIENTIFIC SUMMARY REPORT
+Generated: ${generatedAt}
+Dataset period: ${dateRange}
+Monitoring locations: ${uniqueLocations.join(', ') || 'N/A'}
+
+────────────────────────────────────────
+1. EXECUTIVE SUMMARY
+────────────────────────────────────────
+This report presents an automated analysis of ${q.numRecords} environmental records collected across ${uniqueLocations.length} monitoring location(s) between ${dateRange}. The dataset was evaluated for structural quality, statistical trends, and anomalous readings across air quality, water quality, vegetation, and climate parameters. Overall data quality was scored at ${q.score}/100. ${anomalies.length} statistically significant anomalies were identified, and ${urgentLocs.length} location(s) were flagged for urgent investigation.
+
+────────────────────────────────────────
+2. DATA QUALITY ASSESSMENT
+────────────────────────────────────────
+The dataset contains ${q.numRecords} records across ${q.numColumns} columns, of which ${q.numericColumns.length} were identified as numeric measurement fields (${q.numericColumns.map(c=>PARAM_LABELS.en[c]||c).join(', ') || 'none'}). Missing values accounted for ${q.missingPct}% of all data cells, and ${q.duplicates} duplicate row(s) were detected and removed prior to analysis. Based on completeness, consistency, and numeric field coverage, the dataset received a composite quality score of ${q.score}/100.
+
+────────────────────────────────────────
+3. KEY ENVIRONMENTAL FINDINGS
+────────────────────────────────────────
+${findings.map(f=>'• '+f).join('\n') || 'No numeric indicators were available for analysis.'}
+
+────────────────────────────────────────
+4. POLLUTION TREND INTERPRETATION
+────────────────────────────────────────
+${pm10Included ? `Comparing the earlier and later portions of the monitoring period, PM10 concentrations show ${trendWord} trend (from an average of ${fmt(pm10First)} to ${fmt(pm10Second)} µg/m³). This pattern should be interpreted alongside local activity records (construction, traffic, seasonal burning) to determine causality, as short-term meteorological variation can also influence particulate readings.` : 'PM10 was excluded from this analysis, so no pollution trend interpretation is available. Re-include PM10 to generate this section.'}
+
+────────────────────────────────────────
+5. VEGETATION AND RAINFALL RELATIONSHIP
+────────────────────────────────────────
+${(ndviIncluded && rainfallIncluded) ? `Analysis of NDVI against rainfall across the dataset (${ndviVals.length} NDVI observations, ${rainVals.length} rainfall observations) indicates ${corrWord} relationship${!isNaN(corr) ? ` (correlation coefficient r = ${round(corr,2)})` : ''}. In general, healthy vegetation indices tend to track with adequate precipitation; sustained low NDVI despite normal rainfall may point to non-climatic stressors such as land degradation or land-use change.` : `This relationship could not be assessed because ${!ndviIncluded && !rainfallIncluded ? 'both NDVI and rainfall were' : !ndviIncluded ? 'NDVI was' : 'rainfall was'} excluded from this analysis. Re-include the relevant parameter(s) to generate this section.`}
+
+────────────────────────────────────────
+6. DETECTED ANOMALIES
+────────────────────────────────────────
+${anomalies.length} anomalies were detected using z-score analysis (threshold |z| > 2) across the included parameters (${includedLabel}). Of these, ${anomalies.filter(a=>a.severity==='Critical').length} were classified Critical, ${anomalies.filter(a=>a.severity==='High').length} High, and ${anomalies.filter(a=>a.severity==='Moderate').length} Moderate severity. ${anomalies.length ? 'The most significant anomalies are listed in the Anomaly Detection table above.' : 'No parameters exceeded the statistical anomaly threshold in this dataset.'}
+
+────────────────────────────────────────
+7. POSSIBLE ENVIRONMENTAL CAUSES
+────────────────────────────────────────
+${causes.length ? causes.map(c=>'• '+c).join('\n') : 'No anomaly-driven causal factors were identified in this dataset.'}
+
+────────────────────────────────────────
+8. RECOMMENDED NEXT STEPS
+────────────────────────────────────────
+• ${urgentLocs.length ? `Prioritize field verification at: ${urgentLocs.join(', ')} (flagged Urgent Investigation).` : 'Continue routine monitoring; no locations currently require urgent field verification.'}
+${highLocs.length ? `• Schedule follow-up sampling at ${highLocs.join(', ')} (High Priority) within the next reporting cycle.\n` : ''}• Cross-reference detected anomalies with local activity logs (construction permits, agricultural calendars, industrial output) to establish causality.
+• Increase sampling frequency for parameters showing high variability or borderline threshold values.
+• Validate sensor calibration at stations reporting extreme outliers to rule out instrument error.
+
+────────────────────────────────────────
+9. LIMITATIONS OF THE ANALYSIS
+────────────────────────────────────────
+This report is generated automatically from the uploaded dataset using descriptive statistics and z-score anomaly detection; it does not constitute a certified regulatory assessment. Findings are limited by the size, temporal resolution, and completeness of the input data (${q.missingPct}% missing values). Correlations described here do not establish causation, and thresholds used for status classification are simplified reference values intended for screening purposes only. Results should be validated by a qualified environmental scientist before being used for compliance or policy decisions.${excludedLabel ? ` Note: the following parameters were manually excluded from this analysis and are not reflected anywhere in this report — ${excludedLabel}.` : ''}
+
+── End of automated report ──`;
+}
+
+function generateReportAR(s){
+  const { q, anomalies, dateRange, uniqueLocations, pm10First, pm10Second, pm10Trend, ndviVals, rainVals, corr, findings, causes, urgentLocs, highLocs, pm10Included, ndviIncluded, rainfallIncluded, includedLabel, excludedLabel } = s;
+  const trendWord = isNaN(pm10Trend) ? 'مستقر نسبيًا' : (pm10Trend > 5 ? 'اتجاه تصاعدي' : pm10Trend < -5 ? 'اتجاه تنازلي' : 'اتجاه مستقر نسبيًا');
+  let corrWord = 'لا توجد علاقة واضحة';
+  if(!isNaN(corr)){ corrWord = corr > 0.4 ? 'علاقة إيجابية' : corr < -0.4 ? 'علاقة سلبية' : 'علاقة ضعيفة أو غير ملحوظة'; }
+  const generatedAt = new Date().toLocaleString('ar-EG');
+
+  return `محلل البيئة الذكي — تقرير علمي تلقائي موجز
+تاريخ الإصدار: ${generatedAt}
+فترة البيانات: ${dateRange}
+مواقع الرصد: ${uniqueLocations.join('، ') || 'غير متاح'}
+
+────────────────────────────────────────
+1. الملخص التنفيذي
+────────────────────────────────────────
+يقدّم هذا التقرير تحليلاً آليًا لعدد ${q.numRecords} سجل بيانات بيئية جُمعت من ${uniqueLocations.length} موقع رصد خلال الفترة ${dateRange}. تم تقييم البيانات من حيث الجودة الهيكلية، والاتجاهات الإحصائية، والقراءات الشاذة عبر مؤشرات جودة الهواء والمياه والغطاء النباتي والمناخ. بلغت درجة جودة البيانات الإجمالية ${q.score} من 100. وتم رصد ${anomalies.length} حالة شاذة ذات دلالة إحصائية، مع تصنيف ${urgentLocs.length} موقعًا كحالات تتطلب تحقيقًا عاجلاً.
+
+────────────────────────────────────────
+2. تقييم جودة البيانات
+────────────────────────────────────────
+تحتوي مجموعة البيانات على ${q.numRecords} سجل موزعة على ${q.numColumns} عمود، تم تصنيف ${q.numericColumns.length} منها كحقول قياس رقمية (${q.numericColumns.map(c=>PARAM_LABELS.ar[c]||c).join('، ') || 'لا يوجد'}). شكّلت القيم المفقودة نسبة ${q.missingPct}% من إجمالي خلايا البيانات، كما تم رصد وإزالة ${q.duplicates} صف مكرر قبل التحليل. واستنادًا إلى الاكتمال والاتساق وتغطية الحقول الرقمية، حصلت مجموعة البيانات على درجة جودة إجمالية قدرها ${q.score} من 100.
+
+────────────────────────────────────────
+3. النتائج البيئية الرئيسية
+────────────────────────────────────────
+${findings.map(f=>'• '+f).join('\n') || 'لا توجد مؤشرات رقمية متاحة للتحليل.'}
+
+────────────────────────────────────────
+4. تفسير اتجاه التلوث
+────────────────────────────────────────
+${pm10Included ? `عند مقارنة الفترة الأولى بالفترة الثانية من فترة الرصد، أظهرت تركيزات PM10 ${trendWord} (من متوسط ${fmt(pm10First)} إلى ${fmt(pm10Second)} ميكروغرام/م³). يجب تفسير هذا النمط بالتوازي مع سجلات الأنشطة المحلية (الإنشاءات، الحركة المرورية، الحرق الموسمي) لتحديد الأسباب، حيث يمكن أن يؤثر التغير الجوي قصير المدى أيضًا في قراءات الجسيمات العالقة.` : 'تم استبعاد PM10 من هذا التحليل، لذا لا يتوفر تفسير لاتجاه التلوث في هذا القسم. أعد تضمين PM10 لإظهار هذا القسم.'}
+
+────────────────────────────────────────
+5. العلاقة بين الغطاء النباتي والأمطار
+────────────────────────────────────────
+${(ndviIncluded && rainfallIncluded) ? `يشير تحليل مؤشر NDVI مقابل الأمطار (${ndviVals.length} رصدًا لـ NDVI، و${rainVals.length} رصدًا للأمطار) إلى وجود ${corrWord}${!isNaN(corr) ? ` (معامل الارتباط r = ${round(corr,2)})` : ''}. وبشكل عام، يميل مؤشر الغطاء النباتي الصحي إلى التوافق مع هطول أمطار كافٍ؛ وقد يشير استمرار انخفاض NDVI رغم هطول أمطار طبيعي إلى عوامل ضغط غير مناخية مثل تدهور الأراضي أو تغيّر استخدامها.` : `تعذّر تقييم هذه العلاقة لأن ${!ndviIncluded && !rainfallIncluded ? 'كلاً من NDVI والأمطار تم استبعادهما' : !ndviIncluded ? 'NDVI تم استبعاده' : 'الأمطار تم استبعادها'} من هذا التحليل. أعد تضمين المعيار المطلوب لإظهار هذا القسم.`}
+
+────────────────────────────────────────
+6. الحالات الشاذة المكتشفة
+────────────────────────────────────────
+تم اكتشاف ${anomalies.length} حالة شاذة باستخدام تحليل الانحراف المعياري (Z-score) بعتبة |z| > 2 عبر المؤشرات المضمَّنة في التحليل (${includedLabel}). من هذه الحالات، صُنّفت ${anomalies.filter(a=>a.severity==='Critical').length} كحالات حرجة، و${anomalies.filter(a=>a.severity==='High').length} كحالات مرتفعة الخطورة، و${anomalies.filter(a=>a.severity==='Moderate').length} كحالات متوسطة الخطورة. ${anomalies.length ? 'أهم الحالات الشاذة مدرجة في جدول كشف الحالات الشاذة أعلاه.' : 'لم يتجاوز أي مؤشر عتبة الشذوذ الإحصائي في هذه البيانات.'}
+
+────────────────────────────────────────
+7. الأسباب البيئية المحتملة
+────────────────────────────────────────
+${causes.length ? causes.map(c=>'• '+c).join('\n') : 'لم يتم تحديد عوامل سببية مرتبطة بالحالات الشاذة في هذه البيانات.'}
+
+────────────────────────────────────────
+8. الخطوات التالية الموصى بها
+────────────────────────────────────────
+• ${urgentLocs.length ? `إعطاء الأولوية للتحقق الميداني في: ${urgentLocs.join('، ')} (مصنّفة كتحقيق عاجل).` : 'الاستمرار في الرصد الروتيني؛ لا توجد مواقع تتطلب حاليًا تحققًا ميدانيًا عاجلاً.'}
+${highLocs.length ? `• جدولة أخذ عينات متابعة في ${highLocs.join('، ')} (أولوية عالية) خلال دورة الرصد القادمة.\n` : ''}• مقارنة الحالات الشاذة المكتشفة مع سجلات الأنشطة المحلية (تصاريح البناء، التقويم الزراعي، الإنتاج الصناعي) لتحديد الأسباب.
+• زيادة تكرار أخذ العينات للمؤشرات التي تُظهر تباينًا كبيرًا أو قيمًا قريبة من الحدود الفاصلة.
+• التحقق من معايرة أجهزة الاستشعار في المحطات التي تسجل قيمًا متطرفة لاستبعاد خطأ الجهاز.
+
+────────────────────────────────────────
+9. حدود التحليل
+────────────────────────────────────────
+تم إنشاء هذا التقرير تلقائيًا من البيانات المرفوعة باستخدام الإحصاء الوصفي وتحليل الانحراف المعياري (Z-score)، ولا يُعد تقييمًا تنظيميًا معتمدًا. تتأثر النتائج بحجم البيانات المدخلة ودقتها الزمنية واكتمالها (${q.missingPct}% قيم مفقودة). لا تُثبت الارتباطات الموضحة هنا علاقة سببية، والعتبات المستخدمة في تصنيف الحالة هي قيم مرجعية مبسّطة لأغراض الفرز الأولي فقط. يجب التحقق من النتائج من قِبل مختص بيئي مؤهل قبل استخدامها في قرارات الامتثال أو السياسات.${excludedLabel ? ` ملاحظة: تم استبعاد المعايير التالية يدويًا من هذا التحليل ولا تظهر في أي جزء من هذا التقرير — ${excludedLabel}.` : ''}
+
+── نهاية التقرير الآلي ──`;
+}
+
+function generateReport(){
+  const stats = computeReportStats(currentLang);
+  return currentLang==='ar' ? generateReportAR(stats) : generateReportEN(stats);
+}
+
+/* ---------------------------------------------------------------------
+   16. MASTER PIPELINE — runs after upload or demo load
+   --------------------------------------------------------------------- */
+function runAnalysis(rows, keys){
+  AppState.rawRows = rows;
+  AppState.columns = keys;
+  AppState.filters.excludedParams = new Set(); // reset exclusions for a freshly loaded dataset
+
+  AppState.quality = analyzeDataQuality(rows, keys);
+  AppState.numericColumns = AppState.quality.numericColumns;
+  AppState.cleanedRows = cleanRows(rows, keys, AppState.numericColumns);
+
+  // Reveal all analysis sections
+  ['filters','quality','dashboard','charts','anomalies','map','risk','report'].forEach(id=>{
+    document.getElementById(id).classList.remove('hidden');
+  });
+
+  renderQuality(AppState.quality);
+  renderParamCheckboxes();
+  recomputeDerived();
+
+  document.getElementById('quality').scrollIntoView({behavior:'smooth'});
+}
+
+function renderAll(){
+  renderIndicators();
+  renderCharts();
+  renderAnomalies();
+  renderMap();
+  renderRiskTable();
+}
+
+/* Re-runs anomaly detection, location risk scoring, all views, and the report —
+   called whenever the user toggles which parameters are included in the analysis. */
+function recomputeDerived(){
+  if(!AppState.rawRows.length) return;
+  const warn = document.getElementById('paramNoneWarning');
+  if(includedAnalysisParams().length === 0){ warn.classList.remove('hidden'); }
+  else { warn.classList.add('hidden'); }
+
+  AppState.anomalies = detectAnomalies(AppState.cleanedRows);
+  AppState.locationStats = computeLocationStats(AppState.cleanedRows, AppState.anomalies);
+  renderAll();
+  document.getElementById('reportBody').textContent = generateReport();
+}
+
+/* Builds the "Include Parameters" checkbox row. Toggling a checkbox excludes/includes that
+   parameter from every downstream analysis (indicators, charts, anomalies, risk score, report)
+   without affecting any other parameter. */
+function renderParamCheckboxes(){
+  const row = document.getElementById('paramCheckboxRow');
+  const L = currentLang;
+  const excluded = AppState.filters.excludedParams;
+
+  row.innerHTML = ALL_ANALYSIS_PARAMS.map(p=>{
+    const checked = !excluded.has(p);
+    return `<label class="param-chip${checked ? ' checked' : ''}" data-param="${p}">
+      <input type="checkbox" data-param-checkbox="${p}" ${checked ? 'checked' : ''}>
+      ${PARAM_LABELS[L][p]}
+    </label>`;
+  }).join('');
+
+  row.querySelectorAll('[data-param-checkbox]').forEach(cb=>{
+    cb.addEventListener('change', (e)=>{
+      const p = e.target.getAttribute('data-param-checkbox');
+      if(e.target.checked) AppState.filters.excludedParams.delete(p);
+      else AppState.filters.excludedParams.add(p);
+      e.target.closest('.param-chip').classList.toggle('checked', e.target.checked);
+      recomputeDerived();
+    });
+  });
+}
+
+/* ---------------------------------------------------------------------
+   17. FILE HANDLING (CSV + Excel upload, validation)
+   --------------------------------------------------------------------- */
+const UPLOAD_MSG = {
+  en:{
+    unsupported:'Unsupported file type. Please upload a .csv, .xlsx or .xls file.',
+    noRows:'No data rows found in the file.',
+    noCore:'Warning: no "date" or "location" column detected — some charts and the map may be limited. Analysis will continue with available fields.',
+    loaded:(n,c)=>`Successfully loaded ${n} records with ${c} columns.`,
+    parseErr:(m)=>`Error parsing file: ${m}`,
+    readErr:'Could not read the selected file.',
+    demoLoaded:(n,c)=>`Demo dataset loaded: ${n} records across ${c} locations.`
+  },
+  ar:{
+    unsupported:'نوع ملف غير مدعوم. الرجاء رفع ملف بصيغة .csv أو .xlsx أو .xls.',
+    noRows:'لم يتم العثور على أي بيانات في الملف.',
+    noCore:'تنبيه: لم يتم اكتشاف عمود "التاريخ" أو "الموقع" — قد تكون بعض الرسوم البيانية والخريطة محدودة. سيتابع التحليل بالحقول المتاحة.',
+    loaded:(n,c)=>`تم تحميل ${n} سجلًا يحتوي على ${c} عمودًا بنجاح.`,
+    parseErr:(m)=>`خطأ أثناء تحليل الملف: ${m}`,
+    readErr:'تعذّرت قراءة الملف المحدد.',
+    demoLoaded:(n,c)=>`تم تحميل بيانات توضيحية: ${n} سجلًا عبر ${c} مواقع.`
+  }
+};
+
+function showStatus(msg, type){
+  const el = document.getElementById('uploadStatus');
+  el.textContent = msg;
+  el.className = 'status-line show ' + type;
+}
+
+function processCsvText(text, fileName){
+  const M = UPLOAD_MSG[currentLang];
+  try{
+    const { rows, keys } = parseCsv(text);
+    if(!rows.length){ showStatus(M.noRows, 'err'); return; }
+    const hasCore = keys.includes('date') || keys.includes('location');
+    if(!hasCore){ showStatus(M.noCore, 'info'); }
+    else { showStatus(M.loaded(rows.length, keys.length), 'ok'); }
+    document.getElementById('fileNameTag').textContent = '📄 ' + fileName;
+    document.getElementById('fileNameTag').classList.remove('hidden');
+    runAnalysis(rows, keys);
+  }catch(err){
+    showStatus(M.parseErr(err.message), 'err');
+  }
+}
+
+function handleFile(file){
+  if(!file) return;
+  const M = UPLOAD_MSG[currentLang];
+  const name = file.name.toLowerCase();
+  const isCsv = name.endsWith('.csv');
+  const isExcel = name.endsWith('.xlsx') || name.endsWith('.xls');
+
+  if(!isCsv && !isExcel){ showStatus(M.unsupported, 'err'); return; }
+
+  const reader = new FileReader();
+  if(isExcel){
+    reader.onload = (e)=>{
+      try{
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        // Prefer a sheet literally named "Data" / "البيانات"; otherwise use the first sheet
+        const preferredNames = ['data','البيانات'];
+        let sheetName = wb.SheetNames.find(n => preferredNames.includes(n.trim().toLowerCase())) || wb.SheetNames[0];
+        const sheet = wb.Sheets[sheetName];
+        const csvText = XLSX.utils.sheet_to_csv(sheet);
+        processCsvText(csvText, file.name);
+      }catch(err){
+        showStatus(M.parseErr(err.message), 'err');
+      }
+    };
+    reader.onerror = ()=> showStatus(M.readErr, 'err');
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.onload = (e)=> processCsvText(e.target.result, file.name);
+    reader.onerror = ()=> showStatus(M.readErr, 'err');
+    reader.readAsText(file);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   18. EXPORTS (report / cleaned data / blank Excel template)
+   --------------------------------------------------------------------- */
+function exportReport(){
+  if(!AppState.cleanedRows.length) return;
+  const ext = currentLang==='ar' ? 'تقرير_بيئي' : 'environmental_ai_report';
+  downloadFile(ext + '.txt', document.getElementById('reportBody').textContent, 'text/plain;charset=utf-8');
+}
+
+function exportCleanedCsv(){
+  if(!AppState.cleanedRows.length) return;
+  const keys = AppState.columns;
+  const header = keys.join(',');
+  const lines = AppState.cleanedRows.map(r=> keys.map(k=>{
+    const v = r[k];
+    const s = (v===undefined||v===null) ? '' : String(v);
+    return s.includes(',') ? `"${s}"` : s;
+  }).join(','));
+  const name = currentLang==='ar' ? 'بيانات_بيئية_منقاة.csv' : 'environmental_cleaned_data.csv';
+  // Prepend UTF-8 BOM so Excel opens Arabic text correctly
+  downloadFile(name, '﻿' + [header, ...lines].join('\n'), 'text/csv;charset=utf-8');
+}
+
+function downloadTemplate(){
+  const L = currentLang;
+  const headers = L==='ar'
+    ? ['التاريخ','الموقع','خط العرض','خط الطول','PM10','PM2.5','NO2','SO2','الأمطار','درجة الحرارة','NDVI','pH','EC','TDS']
+    : ['date','location','latitude','longitude','pm10','pm25','no2','so2','rainfall','temperature','ndvi','ph','ec','tds'];
+  const example1 = ['2026-07-01', L==='ar'?'محطة النموذج 1':'Sample Station 1', 24.7136, 46.6753, 55, 28, 20, 8, 12, 31, 0.45, 7.1, 600, 320];
+  const example2 = ['2026-07-04', L==='ar'?'محطة النموذج 2':'Sample Station 2', 24.6877, 46.7219, 140, 85, 45, 15, 5, 34, 0.22, 6.8, 900, 410];
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, example1, example2]);
+  ws['!cols'] = headers.map(()=>({wch:16}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, L==='ar' ? 'البيانات' : 'Data');
+  const fname = L==='ar' ? 'قالب_البيانات_البيئية.xlsx' : 'environmental_data_template.xlsx';
+  XLSX.writeFile(wb, fname);
+}
+
+/* ---------------------------------------------------------------------
+   19. TRANSLATIONS (static UI strings)
+   --------------------------------------------------------------------- */
+const STR = {
+  en:{
+    nav_brand:'Environmental AI Analyst', nav_upload:'Upload', nav_quality:'Data Quality', nav_dashboard:'Dashboard',
+    nav_charts:'Charts', nav_anomalies:'Anomalies', nav_map:'Map', nav_report:'Report', nav_upload_btn:'Upload Dataset',
+    hero_badge:'● AI-Powered Environmental Intelligence',
+    hero_title_html:'Environmental <span class="highlight">AI Analyst</span>',
+    hero_sub:'AI-powered environmental data analysis for air, water, soil, vegetation, and biodiversity.',
+    btn_upload:'⬆ Upload Dataset', btn_demo:'▶ Try Demo Data',
+    stat1:'Environmental Parameters', stat2:'Auto-Generated Charts', stat3:'Anomaly Detection', stat3_val:'Z-Score', stat4:'Backend Servers Required',
+    step1:'Step 1', step2:'Step 2', step3:'Step 3', step4:'Step 4', step5:'Step 5', step6:'Step 6', step7:'Step 7', step8:'Step 8',
+    upload_title:'Load Your Environmental Dataset',
+    upload_sub:'Upload a CSV or Excel export from field sensors, lab results, or monitoring stations — or explore the platform instantly with a realistic demo dataset.',
+    dropzone_title:'Drag & drop your CSV or Excel file here', dropzone_sub:'or click below to browse your files',
+    btn_choose_file:'Choose CSV / Excel File',
+    supported_title:'Supported Data Fields',
+    supported_desc:'The analyzer automatically detects the columns below (case-insensitive, flexible naming, English or Arabic headers). Any additional numeric columns — including heavy metals or species counts — are also picked up automatically.',
+    chip_date:'date', chip_location:'location', chip_lat:'latitude', chip_lon:'longitude', chip_rain:'rainfall', chip_temp:'temperature',
+    chip_metals:'heavy metals', chip_species:'species observations',
+    template_desc:'Not sure how to format your file? Download a ready-to-fill Excel template with the correct headers.',
+    btn_template:'⬇ Download Excel Template',
+    filter_search_label:'Search Location', filter_search_ph:'Type a location name...', filter_category_label:'Category',
+    cat_all:'All Categories', cat_air:'Air Quality', cat_water:'Water Quality', cat_veg:'Vegetation', cat_climate:'Climate',
+    btn_reset_filters:'Reset Filters',
+    param_include_label:'Include Parameters in Analysis',
+    param_select_all:'Select all', param_clear_all:'Clear all',
+    param_hint:'Unavailable or unreliable parameters can be excluded — everything else (charts, anomalies, risk scores, report) recalculates automatically and is unaffected.',
+    param_none_warning:'Select at least one parameter to run the analysis.',
+    quality_title:'Data Quality Analysis', quality_sub:'Automated structural checks run the moment a dataset is loaded.',
+    dashboard_title:'Environmental Indicators Dashboard', dashboard_sub:'Average values across all loaded records, benchmarked against reference environmental thresholds.',
+    charts_title:'Trend & Correlation Charts', charts_sub:'Visualizations generated automatically with Chart.js from your dataset.',
+    chart1_title:'PM10 & PM2.5 Over Time', chart1_sub:'Particulate matter concentration trend across all records',
+    chart2_title:'Average Pollutants by Location', chart2_sub:'PM10, PM2.5 and NO2 comparison across monitoring sites',
+    chart3_title:'NDVI & Rainfall Over Time', chart3_sub:'Vegetation index tracked against precipitation',
+    chart4_title:'Temperature vs PM10', chart4_sub:'Scatter relationship between heat and particulate levels',
+    anomalies_title:'Anomaly Detection', anomalies_sub:'Statistical outliers identified using z-score analysis (|z| > 2) across key environmental parameters.',
+    th_date:'Date', th_location:'Location', th_parameter:'Parameter', th_value:'Value', th_severity:'Severity', th_explanation:'Possible Explanation',
+    th_records:'Records', th_anomalies:'Anomalies', th_risk:'Risk Score', th_recommendation:'Recommendation',
+    map_title:'Monitoring Locations Map', map_sub:'Simplified spatial view plotted from latitude/longitude. Hover a dot for location name and risk level.',
+    rec_Low:'Low Priority', rec_Medium:'Medium Priority', rec_High:'High Priority', rec_Urgent:'Urgent Investigation',
+    risk_title:'Location Risk Scoring', risk_sub:'Composite risk score (0–100) per location, derived from indicator status and detected anomalies.',
+    report_title:'AI-Generated Environmental Report', report_sub:'A scientific-style narrative summary automatically compiled from the analyzed dataset.',
+    report_card_title:'Scientific Summary Report', report_placeholder:'Load a dataset to generate the report.',
+    export_title:'Export Options', export_desc:'Download the generated report or the cleaned dataset for offline use.',
+    btn_download_report:'⬇ Download Report (.txt)', btn_download_csv:'⬇ Download Cleaned Data (.csv)',
+    footer_text:'Environmental AI Analyst — Client-side demo platform. All analysis runs locally in your browser; no data is uploaded to a server.',
+    pageTitle:'Environmental AI Analyst'
+  },
+  ar:{
+    nav_brand:'محلل البيئة الذكي', nav_upload:'الرفع', nav_quality:'جودة البيانات', nav_dashboard:'لوحة المؤشرات',
+    nav_charts:'الرسوم البيانية', nav_anomalies:'الحالات الشاذة', nav_map:'الخريطة', nav_report:'التقرير', nav_upload_btn:'رفع البيانات',
+    hero_badge:'● ذكاء اصطناعي لتحليل البيانات البيئية',
+    hero_title_html:'<span class="highlight">محلل البيئة</span> الذكي',
+    hero_sub:'تحليل بيانات بيئية مدعوم بالذكاء الاصطناعي لجودة الهواء والمياه والتربة والغطاء النباتي والتنوع الحيوي.',
+    btn_upload:'⬆ رفع البيانات', btn_demo:'▶ تجربة بيانات توضيحية',
+    stat1:'مؤشرًا بيئيًا', stat2:'رسوم بيانية تلقائية', stat3:'كشف الحالات الشاذة', stat3_val:'Z-Score', stat4:'خوادم خلفية مطلوبة',
+    step1:'الخطوة 1', step2:'الخطوة 2', step3:'الخطوة 3', step4:'الخطوة 4', step5:'الخطوة 5', step6:'الخطوة 6', step7:'الخطوة 7', step8:'الخطوة 8',
+    upload_title:'تحميل مجموعة البيانات البيئية',
+    upload_sub:'ارفع ملف CSV أو Excel من أجهزة الاستشعار الميدانية أو نتائج المختبر أو محطات الرصد — أو استكشف المنصة فورًا باستخدام بيانات توضيحية واقعية.',
+    dropzone_title:'اسحب وأفلت ملف CSV أو Excel هنا', dropzone_sub:'أو انقر أدناه لاختيار الملف من جهازك',
+    btn_choose_file:'اختر ملف CSV / Excel',
+    supported_title:'الحقول المدعومة',
+    supported_desc:'يكتشف المحلل الأعمدة التالية تلقائيًا (بغض النظر عن حالة الأحرف، وبأسماء مرنة، بالعربية أو الإنجليزية). كما يتم اكتشاف أي أعمدة رقمية إضافية تلقائيًا — بما في ذلك المعادن الثقيلة أو أعداد الأنواع.',
+    chip_date:'التاريخ', chip_location:'الموقع', chip_lat:'خط العرض', chip_lon:'خط الطول', chip_rain:'الأمطار', chip_temp:'درجة الحرارة',
+    chip_metals:'المعادن الثقيلة', chip_species:'مشاهدات الأنواع الأحيائية',
+    template_desc:'غير متأكد من طريقة تنسيق ملفك؟ حمّل نموذج Excel جاهزًا للتعبئة يحتوي على العناوين الصحيحة.',
+    btn_template:'⬇ تحميل نموذج Excel',
+    filter_search_label:'البحث عن موقع', filter_search_ph:'اكتب اسم الموقع...', filter_category_label:'الفئة',
+    cat_all:'كل الفئات', cat_air:'جودة الهواء', cat_water:'جودة المياه', cat_veg:'الغطاء النباتي', cat_climate:'المناخ',
+    btn_reset_filters:'إعادة تعيين الفلاتر',
+    param_include_label:'المعايير المشمولة بالتحليل',
+    param_select_all:'تحديد الكل', param_clear_all:'إلغاء التحديد',
+    param_hint:'يمكن استبعاد المعايير غير المتوفرة أو غير الموثوقة — بقية التحليلات (الرسوم البيانية، الحالات الشاذة، درجات الخطورة، التقرير) تُعاد حسابها تلقائيًا ولا تتأثر بذلك.',
+    param_none_warning:'الرجاء تحديد معيار واحد على الأقل لتشغيل التحليل.',
+    quality_title:'تحليل جودة البيانات', quality_sub:'يتم إجراء فحوصات هيكلية تلقائية بمجرد تحميل مجموعة البيانات.',
+    dashboard_title:'لوحة المؤشرات البيئية', dashboard_sub:'متوسط القيم عبر جميع السجلات المحمّلة، مقارنة بالحدود البيئية المرجعية.',
+    charts_title:'الرسوم البيانية للاتجاهات والعلاقات', charts_sub:'رسوم بيانية تُنشأ تلقائيًا باستخدام Chart.js من بياناتك.',
+    chart1_title:'PM10 وPM2.5 عبر الزمن', chart1_sub:'اتجاه تركيز الجسيمات العالقة عبر جميع السجلات',
+    chart2_title:'متوسط الملوثات حسب الموقع', chart2_sub:'مقارنة PM10 وPM2.5 وNO2 عبر مواقع الرصد',
+    chart3_title:'NDVI والأمطار عبر الزمن', chart3_sub:'تتبع مؤشر الغطاء النباتي مقابل هطول الأمطار',
+    chart4_title:'درجة الحرارة مقابل PM10', chart4_sub:'علاقة تشتت بين الحرارة ومستويات الجسيمات العالقة',
+    anomalies_title:'كشف الحالات الشاذة', anomalies_sub:'حالات شاذة إحصائيًا تم تحديدها باستخدام تحليل الانحراف المعياري (|z| > 2) عبر المؤشرات البيئية الرئيسية.',
+    th_date:'التاريخ', th_location:'الموقع', th_parameter:'المعيار', th_value:'القيمة', th_severity:'الخطورة', th_explanation:'التفسير المحتمل',
+    th_records:'عدد السجلات', th_anomalies:'الحالات الشاذة', th_risk:'درجة الخطورة', th_recommendation:'التوصية',
+    map_title:'خريطة مواقع الرصد', map_sub:'عرض مكاني مبسّط بناءً على خط العرض وخط الطول. مرّر المؤشر فوق أي نقطة لعرض اسم الموقع ومستوى الخطورة.',
+    rec_Low:'أولوية منخفضة', rec_Medium:'أولوية متوسطة', rec_High:'أولوية عالية', rec_Urgent:'تحقيق عاجل',
+    risk_title:'تقييم المخاطر حسب الموقع', risk_sub:'درجة خطورة مركبة (0-100) لكل موقع، مشتقة من حالة المؤشرات والحالات الشاذة المكتشفة.',
+    report_title:'تقرير بيئي مُولّد بالذكاء الاصطناعي', report_sub:'ملخص سردي بأسلوب علمي يُجمّع تلقائيًا من البيانات التي تم تحليلها.',
+    report_card_title:'تقرير علمي ملخّص', report_placeholder:'قم بتحميل بيانات لإنشاء التقرير.',
+    export_title:'خيارات التصدير', export_desc:'حمّل التقرير المُنشأ أو البيانات المنقاة للاستخدام دون اتصال.',
+    btn_download_report:'⬇ تحميل التقرير (.txt)', btn_download_csv:'⬇ تحميل البيانات المنقاة (.csv)',
+    footer_text:'محلل البيئة الذكي — منصة تجريبية تعمل بالكامل من جهتك. جميع التحليلات تتم محليًا في متصفحك؛ لا تُرفع أي بيانات إلى خادم خارجي.',
+    pageTitle:'محلل البيئة الذكي'
+  }
+};
+
+/* ---------------------------------------------------------------------
+   20. LANGUAGE SWITCHING
+   --------------------------------------------------------------------- */
+function applyLanguage(lang){
+  currentLang = lang;
+  const dict = STR[lang];
+
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.body.classList.toggle('lang-ar', lang === 'ar');
+  document.title = dict.pageTitle;
+
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-html');
+    if(dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-placeholder');
+    if(dict[key] !== undefined) el.placeholder = dict[key];
+  });
+
+  document.getElementById('langEnBtn').classList.toggle('active', lang==='en');
+  document.getElementById('langArBtn').classList.toggle('active', lang==='ar');
+
+  // Re-render dynamic content in the new language, if a dataset is already loaded
+  if(AppState.rawRows.length){
+    renderQuality(AppState.quality);
+    renderParamCheckboxes(); // relabel the include/exclude chips in the new language
+    renderAll();
+    document.getElementById('reportBody').textContent = generateReport();
+  } else {
+    document.getElementById('reportBody').textContent = dict.report_placeholder;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   21. EVENT WIRING
+   --------------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const dropZone = document.getElementById('dropZone');
+  const csvInput = document.getElementById('csvInput');
+
+  const scrollToUpload = ()=> document.getElementById('upload').scrollIntoView({behavior:'smooth'});
+  document.getElementById('heroUploadBtn').addEventListener('click', scrollToUpload);
+  document.getElementById('navUploadBtn').addEventListener('click', scrollToUpload);
+  document.getElementById('browseBtn').addEventListener('click', ()=> csvInput.click());
+
+  csvInput.addEventListener('change', (e)=> handleFile(e.target.files[0]));
+
+  dropZone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', ()=> dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', (e)=>{
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById('demoBtn').addEventListener('click', loadDemo);
+  document.getElementById('heroDemoBtn').addEventListener('click', loadDemo);
+
+  function loadDemo(){
+    const { rows, keys } = generateDemoData();
+    const M = UPLOAD_MSG[currentLang];
+    showStatus(M.demoLoaded(rows.length, new Set(rows.map(r=>r.location)).size), 'ok');
+    const fname = currentLang==='ar' ? 'بيانات_بيئية_توضيحية.csv' : 'demo_environmental_data.csv';
+    document.getElementById('fileNameTag').textContent = '📄 ' + fname;
+    document.getElementById('fileNameTag').classList.remove('hidden');
+    runAnalysis(rows, keys);
+  }
+
+  // Filters
+  document.getElementById('locationSearch').addEventListener('input', (e)=>{
+    AppState.filters.search = e.target.value;
+    renderAll();
+  });
+  document.getElementById('categoryFilter').addEventListener('change', (e)=>{
+    AppState.filters.category = e.target.value;
+    renderIndicators();
+  });
+  document.getElementById('resetFiltersBtn').addEventListener('click', ()=>{
+    // Only resets the view filters (search/category) — parameter inclusion has its own controls below
+    AppState.filters.search = '';
+    AppState.filters.category = 'All';
+    document.getElementById('locationSearch').value = '';
+    document.getElementById('categoryFilter').value = 'All';
+    renderAll();
+  });
+
+  // Include/exclude parameters
+  document.getElementById('paramSelectAllBtn').addEventListener('click', ()=>{
+    AppState.filters.excludedParams.clear();
+    renderParamCheckboxes();
+    recomputeDerived();
+  });
+  document.getElementById('paramClearAllBtn').addEventListener('click', ()=>{
+    ALL_ANALYSIS_PARAMS.forEach(p => AppState.filters.excludedParams.add(p));
+    renderParamCheckboxes();
+    recomputeDerived();
+  });
+
+  // Exports
+  document.getElementById('downloadReportBtn').addEventListener('click', exportReport);
+  document.getElementById('downloadCsvBtn').addEventListener('click', exportCleanedCsv);
+  document.getElementById('downloadTemplateBtn').addEventListener('click', downloadTemplate);
+
+  // Language toggle
+  document.getElementById('langEnBtn').addEventListener('click', ()=> applyLanguage('en'));
+  document.getElementById('langArBtn').addEventListener('click', ()=> applyLanguage('ar'));
+});
+</script>
+
+<!-- Sidebar drawer toggle — mobile/tablet only. Kept as a small standalone
+     script so the core analysis logic above is never touched. -->
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const toggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  function openSidebar(){ sidebar.classList.add('open'); overlay.classList.add('show'); toggle.classList.add('open'); }
+  function closeSidebar(){ sidebar.classList.remove('open'); overlay.classList.remove('show'); toggle.classList.remove('open'); }
+
+  toggle.addEventListener('click', ()=>{
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  overlay.addEventListener('click', closeSidebar);
+  sidebar.querySelectorAll('a, button').forEach(el=> el.addEventListener('click', closeSidebar));
+});
+</script>
+</body>
+</html>
